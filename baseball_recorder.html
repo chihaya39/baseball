@@ -333,7 +333,6 @@ td:first-child{text-align:left;padding-left:4px}
   <div class="zone zone-purple-light">
     <div class="zone-label">投手記録</div>
     <div class="cg3" id="pitGrid">
-      <div class="cb" data-v="O" onclick="pickPit(this)">O<br><span style="font-size:10px">奪アウト</span></div>
       <div class="cb" data-v="K" onclick="pickPit(this)">K<br><span style="font-size:10px">奪三振</span></div>
       <div class="cb" data-v="BB" onclick="pickPit(this)">BB<br><span style="font-size:10px">与四球</span></div>
       <div class="cb" data-v="HBP" onclick="pickPit(this)">HBP<br><span style="font-size:10px">与死球</span></div>
@@ -366,9 +365,6 @@ td:first-child{text-align:left;padding-left:4px}
     <div class="metric"><div class="mv">0</div><div class="ml">奪三振</div></div>
     <div class="metric"><div class="mv">0</div><div class="ml">与四死球</div></div>
   </div>
-  <div style="font-size:12px;font-weight:600;margin-bottom:8px">記録結果（Excelに転記用）</div>
-  <div id="resultCards"></div>
-  <div class="divider"></div>
   <div style="font-size:12px;font-weight:600;margin-bottom:6px">打撃集計</div>
   <table><thead><tr><th>Order</th><th>#</th><th>Name</th><th>PA</th><th>H</th><th>RBI</th><th>K</th><th>BB</th></tr></thead><tbody id="statsBody"></tbody></table>
   <div class="divider"></div>
@@ -1485,6 +1481,18 @@ function commitFld(){
   var p=fsel.player,val=fsel.val; if(!p||!val) return;
   if(!fldData[p.num]) fldData[p.num]={O:0,N:0,Ec:0,Et:0,Ej:0};
   fldData[p.num][val]=(fldData[p.num][val]||0)+1;
+  // 野手アウト→現在の投手のOも自動加算
+  if(val==='O' && currentPitcher){
+    var isAtt2 = isSenkou ? isOmote : !isOmote;
+    if(!pitData[currentPitcher.num]) pitData[currentPitcher.num]={O:0,K:0,BB:0,HBP:0,H:0,R:0};
+    pitData[currentPitcher.num].O++;
+    if(!isAtt2){
+      pitOutCount++;
+      updateOutDisplay();
+      if(pitOutCount>=3) advanceInning('pit');
+    }
+    renderPitStats();
+  }
   fldLogs.unshift({label:currentInning+'回 #'+p.num,code:val,time:nowTime()});
   renderLog('fldLog',fldLogs); saveGameToStorage(); resetFld();
 }
@@ -1539,8 +1547,12 @@ function commitPit(){
   if(!pitData[p.num]) pitData[p.num]={O:0,K:0,BB:0,HBP:0,H:0,R:0};
   pitData[p.num][val]=(pitData[p.num][val]||0)+1;
   var pitLogInning = currentInning;  // チェンジ前の回を記録
-  // 奪アウトカウント
-  if(val==='O'){
+  // 奪三振もアウトカウント増加
+  if(val==='K'){
+    pitData[p.num].O = (pitData[p.num].O||0) + 1;
+  }
+  // 奪アウトカウント（OとK両方）
+  if(val==='O' || val==='K'){
     pitOutCount++;
     updateOutDisplay();
     if(pitOutCount>=3) advanceInning('pit');
@@ -1612,158 +1624,7 @@ function renderStats(){
     +'<div class="metric"><div class="mv">'+pK+'</div><div class="ml">奪三振</div></div>'
     +'<div class="metric"><div class="mv">'+pBB+'</div><div class="ml">与四死球</div></div>';
 
-  var cards=document.getElementById('resultCards');
-  cards.innerHTML='';
 
-  // batOrderとbatSubPlayersから選手リストを作る
-  var allPlayerNums = [];
-  batOrder.forEach(function(o){ allPlayerNums.push({num:o.num, order:o.order, isSub:false}); });
-  batSubPlayers.forEach(function(p){ allPlayerNums.push({num:p.num, order:'代', isSub:true}); });
-  // batDataにあるが上記にない選手も追加
-  Object.keys(batData).forEach(function(num){
-    if(!allPlayerNums.find(function(x){return x.num===num;})){
-      allPlayerNums.push({num:num, order:'-', isSub:false});
-    }
-  });
-  var allPlayers = allPlayerNums;
-  var hasAny = false;
-
-  allPlayers.forEach(function(p){
-    var bat = batData[p.num];
-    var run = runData[p.num];
-    var fld = fldData[p.num];
-    var pit = pitData[p.num];
-    var label=(p.isSub?'代打/走':p.order+'番')+' #'+p.num+' '+getMasterName(p.num);
-
-    var batStr = (bat && bat.results.length>0) ? bat.results.join(',') : '';
-    var runStr = '';
-    if(run){
-      var runArr=[];
-      ['SB+','SB-','PO','WP','PB'].forEach(function(k){
-        for(var i=0;i<(run[k]||0);i++) runArr.push(k);
-      });
-      runStr = runArr.join(',');
-    }
-    var fldStr = '';
-    if(fld){
-      var fldArr=[];
-      ['O','N','Ec','Et','Ej'].forEach(function(k){
-        for(var i=0;i<(fld[k]||0);i++) fldArr.push(k);
-      });
-      fldStr = fldArr.join(',');
-    }
-    if(!batStr && !runStr && !fldStr && !(pit&&(pit.O+pit.K+pit.BB+pit.HBP+pit.H+pit.R)>0)) return;
-    hasAny = true;
-
-
-    var html = '<div class="result-card"><div class="rc-head"><span class="rc-num">'+label+'</span></div>';
-
-    if(batStr){
-      html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'
-        +'<span style="font-size:10px;color:var(--text3)">打撃</span>'
-        +'<button class="copy-btn" onclick="copyText(this.dataset.v)" data-v="">コピー</button></div>'
-        +'<div class="rc-str" style="margin-bottom:8px" id="bat_'+p.num+'">'+batStr+'</div>';
-    }
-    if(runStr){
-      html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'
-        +'<span style="font-size:10px;color:var(--text3)">走塁</span>'
-        +'<button class="copy-btn" onclick="copyText(this.dataset.v)" data-v="">コピー</button></div>'
-        +'<div class="rc-str" style="margin-bottom:8px" id="run_'+p.num+'">'+runStr+'</div>';
-    }
-    if(fldStr){
-      html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'
-        +'<span style="font-size:10px;color:var(--text3)">守備</span>'
-        +'<button class="copy-btn" onclick="copyText(this.dataset.v)" data-v="">コピー</button></div>'
-        +'<div class="rc-str" style="margin-bottom:8px" id="fld_'+p.num+'">'+fldStr+'</div>';
-    }
-    if(pit && (pit.O+pit.K+pit.BB+pit.HBP+pit.H+pit.R)>0){
-      var pitLabel = 'O:'+pit.O+' K:'+pit.K+' BB/HBP:'+(pit.BB+pit.HBP)+' H:'+pit.H+' R:'+pit.R;
-      html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'
-        +'<span style="font-size:10px;color:var(--text3)">投手</span>'
-        +'<button class="copy-btn" onclick="copyText(this.dataset.v)" data-v="">コピー</button></div>'
-        +'<div class="rc-str" id="pit_'+p.num+'">'+pitLabel+'</div>';
-    }
-    html += '</div>';
-    cards.innerHTML += html;
-  });
-
-  if(!hasAny) cards.innerHTML='<div style="color:var(--text3);font-size:12px;padding:8px 0">まだ記録がありません</div>';
-
-  // set data-v for copy buttons after DOM insert
-  allPlayers.forEach(function(p){
-    var bat=batData[p.num]; var run=runData[p.num]; var fld=fldData[p.num]; var pit=pitData[p.num];
-    var batStr=(bat&&bat.results.length>0)?bat.results.join(','):'';
-    var runArr=[];
-    if(run) ['SB+','SB-','PO','WP','PB'].forEach(function(k){for(var i=0;i<(run[k]||0);i++)runArr.push(k);});
-    var runStr=runArr.join(',');
-    var fldArr=[];
-    if(fld) ['O','N','Ec','Et','Ej'].forEach(function(k){for(var i=0;i<(fld[k]||0);i++)fldArr.push(k);});
-    var fldStr=fldArr.join(',');
-    var pitStr=pit?(pit.O+'	'+pit.K+'	'+(pit.BB+pit.HBP)+'	'+pit.H+'	'+pit.R):'';
-    if(document.getElementById('bat_'+p.num)){
-      document.getElementById('bat_'+p.num).previousElementSibling.querySelector('.copy-btn').dataset.v=batStr;
-    }
-    if(document.getElementById('run_'+p.num)){
-      document.getElementById('run_'+p.num).previousElementSibling.querySelector('.copy-btn').dataset.v=runStr;
-    }
-    if(document.getElementById('fld_'+p.num)){
-      document.getElementById('fld_'+p.num).previousElementSibling.querySelector('.copy-btn').dataset.v=fldStr;
-    }
-    if(document.getElementById('pit_'+p.num)){
-      document.getElementById('pit_'+p.num).previousElementSibling.querySelector('.copy-btn').dataset.v=pitStr;
-    }
-  });
-
-  
-  var sb=document.getElementById('statsBody'); sb.innerHTML='';
-  // スタメン（batOrderの順番で）
-  if(batOrder.length > 0){
-    batOrder.forEach(function(o){
-      var s=batData[o.num]||{pa:0,ab:0,h:0,rbi:0,k:0,bb:0};
-      sb.innerHTML+='<tr><td>'+o.order+'</td><td>#'+o.num+'</td>'
-        +'<td>'+getMasterName(o.num)+'</td>'
-        +'<td>'+s.pa+'</td><td>'+s.h+'</td>'
-        +'<td>'+s.rbi+'</td><td>'+s.k+'</td><td>'+s.bb+'</td></tr>';
-    });
-    // 代打・代走
-    if(batSubPlayers.length > 0){
-      sb.innerHTML+='<tr><td colspan="9" style="font-size:10px;color:var(--text3);padding:5px 4px">— 代打・代走 —</td></tr>';
-      batSubPlayers.forEach(function(p){
-        var s=batData[p.num]||{pa:0,ab:0,h:0,rbi:0,k:0,bb:0};
-        sb.innerHTML+='<tr><td>代</td><td>#'+p.num+'</td>'
-          +'<td>'+getMasterName(p.num)+'</td>'
-          +'<td>'+s.pa+'</td><td>'+s.h+'</td>'
-          +'<td>'+s.rbi+'</td><td>'+s.k+'</td><td>'+s.bb+'</td></tr>';
-      });
-    }
-  } else {
-    // batOrderがない場合はbatDataから直接
-    Object.keys(batData).forEach(function(num){
-      var s=batData[num]; if(!s||s.pa===0) return;
-      sb.innerHTML+='<tr><td>-</td><td>#'+num+'</td>'
-        +'<td>'+getMasterName(num)+'</td>'
-        +'<td>'+s.pa+'</td><td>'+s.h+'</td>'
-        +'<td>'+s.rbi+'</td><td>'+s.k+'</td><td>'+s.bb+'</td></tr>';
-    });
-  }
-
-  var rb=document.getElementById('runStatsBody'); rb.innerHTML='';
-  Object.keys(runData).forEach(function(num){
-    var s=runData[num]; if(!s) return;
-    if(s['SB+']+s['SB-']+s.PO+s.WP+s.PB===0) return;
-    rb.innerHTML+='<tr><td>#'+num+'</td><td>'+getMasterName(num)+'</td><td>'+s['SB+']+'</td><td>'+s['SB-']+'</td>'
-      +'<td>'+s.PO+'</td><td>'+s.WP+'</td><td>'+s.PB+'</td></tr>';
-  });
-
-  var fb=document.getElementById('fldStatsBody'); fb.innerHTML='';
-  Object.keys(fldData).forEach(function(num){
-    var s=fldData[num]; if(!s) return;
-    if(s.O+s.N+s.Ec+s.Et+s.Ej===0) return;
-    fb.innerHTML+='<tr><td>#'+num+'</td><td>'+getMasterName(num)+'</td><td>'+s.O+'</td><td>'+s.N+'</td>'
-      +'<td>'+s.Ec+'</td><td>'+s.Et+'</td><td>'+s.Ej+'</td></tr>';
-  });
-
-  // 投手成績はrenderPitStatsで一元管理
   renderPitStats();
 }
 
