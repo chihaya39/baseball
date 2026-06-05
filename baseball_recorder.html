@@ -1607,14 +1607,13 @@ function renderPitStats(){
 // ===== STATS =====
 function renderStats(){
   var tH=0,tRBI=0,tK=0,tBB=0;
-  Object.values(batData).forEach(function(s){tH+=s.h;tRBI+=s.rbi;tK+=s.k;tBB+=s.bb;});
+  Object.values(batData).forEach(function(s){tH+=s.h||0;tRBI+=s.rbi||0;tK+=s.k||0;tBB+=s.bb||0;});
   document.getElementById('metricGrid').innerHTML=
     '<div class="metric"><div class="mv">'+tRBI+'</div><div class="ml">得点</div></div>'
     +'<div class="metric"><div class="mv">'+tH+'</div><div class="ml">安打</div></div>'
     +'<div class="metric"><div class="mv">'+tK+'</div><div class="ml">三振</div></div>'
     +'<div class="metric"><div class="mv">'+tBB+'</div><div class="ml">四死球</div></div>';
 
-  // 投手集計
   var pH=0,pR=0,pK=0,pBB=0;
   Object.values(pitData).forEach(function(s){if(s){pH+=s.H||0;pR+=s.R||0;pK+=s.K||0;pBB+=((s.BB||0)+(s.HBP||0));}});
   var pg=document.getElementById('pitMetricGrid');
@@ -1624,6 +1623,48 @@ function renderStats(){
     +'<div class="metric"><div class="mv">'+pK+'</div><div class="ml">奪三振</div></div>'
     +'<div class="metric"><div class="mv">'+pBB+'</div><div class="ml">与四死球</div></div>';
 
+  // 打撃集計
+  var sb=document.getElementById('statsBody'); if(sb){ sb.innerHTML='';
+    if(batOrder.length>0){
+      batOrder.forEach(function(o){
+        var s=batData[o.num]||{pa:0,h:0,rbi:0,k:0,bb:0};
+        sb.innerHTML+='<tr><td>'+o.order+'</td><td>#'+o.num+'</td><td>'+getMasterName(o.num)+'</td>'
+          +'<td>'+s.pa+'</td><td>'+s.h+'</td><td>'+s.rbi+'</td><td>'+s.k+'</td><td>'+s.bb+'</td></tr>';
+      });
+      if(batSubPlayers.length>0){
+        sb.innerHTML+='<tr><td colspan="8" style="font-size:10px;color:var(--text3);padding:4px">— 代打・代走 —</td></tr>';
+        batSubPlayers.forEach(function(p){
+          var s=batData[p.num]||{pa:0,h:0,rbi:0,k:0,bb:0};
+          sb.innerHTML+='<tr><td>代</td><td>#'+p.num+'</td><td>'+getMasterName(p.num)+'</td>'
+            +'<td>'+s.pa+'</td><td>'+s.h+'</td><td>'+s.rbi+'</td><td>'+s.k+'</td><td>'+s.bb+'</td></tr>';
+        });
+      }
+    } else {
+      Object.keys(batData).forEach(function(num){
+        var s=batData[num]; if(!s||s.pa===0) return;
+        sb.innerHTML+='<tr><td>-</td><td>#'+num+'</td><td>'+getMasterName(num)+'</td>'
+          +'<td>'+s.pa+'</td><td>'+s.h+'</td><td>'+s.rbi+'</td><td>'+s.k+'</td><td>'+s.bb+'</td></tr>';
+      });
+    }
+  }
+
+  // 走塁集計
+  var rb=document.getElementById('runStatsBody'); if(rb){ rb.innerHTML='';
+    Object.keys(runData).forEach(function(num){
+      var s=runData[num]; if(!s||s['SB+']+s['SB-']+s.PO+s.WP+s.PB===0) return;
+      rb.innerHTML+='<tr><td>#'+num+'</td><td>'+getMasterName(num)+'</td><td>'+s['SB+']+'</td><td>'+s['SB-']+'</td>'
+        +'<td>'+s.PO+'</td><td>'+s.WP+'</td><td>'+s.PB+'</td></tr>';
+    });
+  }
+
+  // 野手集計
+  var fb=document.getElementById('fldStatsBody'); if(fb){ fb.innerHTML='';
+    Object.keys(fldData).forEach(function(num){
+      var s=fldData[num]; if(!s||s.O+s.N+s.Ec+s.Et+s.Ej===0) return;
+      fb.innerHTML+='<tr><td>#'+num+'</td><td>'+getMasterName(num)+'</td><td>'+s.O+'</td><td>'+s.N+'</td>'
+        +'<td>'+s.Ec+'</td><td>'+s.Et+'</td><td>'+s.Ej+'</td></tr>';
+    });
+  }
 
   renderPitStats();
 }
