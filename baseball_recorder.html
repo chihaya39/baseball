@@ -151,7 +151,7 @@ td:first-child{text-align:left;padding-left:4px}
     <div class="header-sub" id="headerSub">オーダーを設定してください</div>
   </div>
   <div id="outDisplay" style="display:flex;align-items:center;gap:4px;margin-right:8px"></div>
-  <select class="inning-sel" id="inningSelect" onchange="setInning(this.value)">
+  <select class="inning-sel" id="inningSelect" onchange="setInning(this.value)" style="display:none">
     <option value="1">1回</option><option value="2">2回</option><option value="3">3回</option>
     <option value="4">4回</option><option value="5">5回</option><option value="6">6回</option>
     <option value="7">7回</option><option value="8">8回</option><option value="9">9回</option>
@@ -481,6 +481,7 @@ function init(){
     buildAllGrids();
     updateOutDisplay();
     document.getElementById('inningSelect').value = currentInning;
+    document.getElementById('inningSelect').style.display = (gameState==='playing') ? '' : 'none';
     // ログを復元
     renderLog('batLog', batLogs);
     renderLog('runLog', runLogs);
@@ -936,6 +937,7 @@ function saveOrder(){
   switchTab(isSenkou ? 'batting' : 'pitcher');
   saveGameToStorage();
   gameState = 'playing';
+  document.getElementById('inningSelect').style.display = '';
   updateOutDisplay();
   updateGameHeader();
 }
@@ -965,6 +967,7 @@ function endGame(){
   document.getElementById('headerTitle').textContent = teamName + ' ' + myScore + ' - ' + oppScore + ' ' + opp;
   document.getElementById('headerSub').textContent = '試合終了';
   gameState = 'ended';
+  document.getElementById('inningSelect').style.display = 'none';
   updateOutDisplay();
   saveGameToStorage();
 }
