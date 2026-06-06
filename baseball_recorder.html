@@ -541,6 +541,13 @@ function loadGameFromStorage(){
     orderConfirmed=g.orderConfirmed||false;
     gameState=g.gameState||'before';
     onBase=g.onBase||[];
+    // 試合終了状態の復元
+    if(gameState==='ended' && g.endScore){
+      document.getElementById('headerTitle').textContent = '試合記録';
+      document.getElementById('headerSub').textContent = '記録完了';
+      document.getElementById('outDisplay').innerHTML =
+        '<span style="font-size:13px;font-weight:700;color:var(--text)">'+g.endScore+'</span>';
+    }
     currentInning=g.currentInning||1;
     isOmote=g.isOmote!==undefined?g.isOmote:true;
     isSenkou=g.isSenkou!==undefined?g.isSenkou:true;
@@ -673,7 +680,7 @@ function updateOutDisplay(){
     return;
   }
   if(gameState==='ended'){
-    el.innerHTML = '<span style="font-size:11px;color:var(--text3)">試合終了</span>';
+    // endGame()でスコアを設定済みなので上書きしない
     return;
   }
 
@@ -964,12 +971,21 @@ function endGame(){
   Object.values(batData).forEach(function(s){ myScore += s.rbi||0; });
   Object.values(pitData).forEach(function(s){ oppScore += s.R||0; });
   var teamName = getTeamName();
-  document.getElementById('headerTitle').textContent = teamName + ' ' + myScore + ' - ' + oppScore + ' ' + opp;
-  document.getElementById('headerSub').textContent = '試合終了';
+  // ヘッダー左：試合記録 / 記録完了
+  document.getElementById('headerTitle').textContent = '試合記録';
+  document.getElementById('headerSub').textContent = '記録完了';
+  // ヘッダー中央：スコア
+  document.getElementById('outDisplay').innerHTML =
+    '<span style="font-size:13px;font-weight:700;color:var(--text)">'
+    + teamName + ' ' + myScore + ' - ' + oppScore + ' ' + opp
+    + '</span>';
   gameState = 'ended';
   document.getElementById('inningSelect').style.display = 'none';
-  updateOutDisplay();
-  saveGameToStorage();
+  // endScoreを保存
+  var savedGame = JSON.parse(localStorage.getItem('baseball_game')||'{}');
+  savedGame.endScore = teamName + ' ' + myScore + ' - ' + oppScore + ' ' + opp;
+  savedGame.gameState = 'ended';
+  localStorage.setItem('baseball_game', JSON.stringify(savedGame));
 }
 
 function isPitcher(p){ return p.pos && p.pos.indexOf('P')>=0; }
