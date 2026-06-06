@@ -471,11 +471,9 @@ function init(){
   renderMasterRows();
   renderOrderSelRows();
   // チーム名を復元
-  var savedTeam = localStorage.getItem('baseball_teamName');
-  if(savedTeam){
-    var el = document.getElementById('teamName');
-    if(el) el.value = savedTeam;
-  }
+  var savedTeam = localStorage.getItem('baseball_teamName') || '長束中';
+  var el = document.getElementById('teamName');
+  if(el) el.value = savedTeam;
 
   // 試合データが残っていれば復元
   if(loadGameFromStorage()){
@@ -545,7 +543,7 @@ function loadGameFromStorage(){
     // 試合終了状態の復元
     if(gameState==='ended' && g.endScore){
       document.getElementById('headerTitle').textContent = '⚾ 試合記録';
-      document.getElementById('headerSub').textContent = '';
+      document.getElementById('headerSub').textContent = g.gameDate||'';
       var scoreEl2 = document.getElementById('scoreDisplay');
       if(scoreEl2){
         scoreEl2.innerHTML = '<span style="font-size:15px;font-weight:700;color:var(--text)">'+g.endScore+'</span>';
@@ -968,7 +966,7 @@ function saveTeamName(){
 }
 
 function getTeamName(){
-  return localStorage.getItem('baseball_teamName') || 'わがチーム';
+  return localStorage.getItem('baseball_teamName') || '長束中';
 }
 
 function endGame(){
@@ -977,9 +975,10 @@ function endGame(){
   Object.values(batData).forEach(function(s){ myScore += s.rbi||0; });
   Object.values(pitData).forEach(function(s){ oppScore += s.R||0; });
   var teamName = getTeamName();
-  // ヘッダー左：⚾ 試合記録（サブなし）
+  // ヘッダー左：⚾ 試合記録 / 日付
+  var endDate = document.getElementById('gameDate').value || '';
   document.getElementById('headerTitle').textContent = '⚾ 試合記録';
-  document.getElementById('headerSub').textContent = '';
+  document.getElementById('headerSub').textContent = endDate;
   // ヘッダー中央：スコア（大きめ）
   var scoreEl = document.getElementById('scoreDisplay');
   if(scoreEl){
