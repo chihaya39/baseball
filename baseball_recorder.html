@@ -150,6 +150,7 @@ td:first-child{text-align:left;padding-left:4px}
     <div class="header-title" id="headerTitle">⚾ 試合記録</div>
     <div class="header-sub" id="headerSub">オーダーを設定してください</div>
   </div>
+  <div id="scoreDisplay" style="font-size:12px;font-weight:700;color:var(--text);text-align:center;flex:1;display:none"></div>
   <div id="outDisplay" style="display:flex;align-items:center;gap:4px;margin-right:8px"></div>
   <select class="inning-sel" id="inningSelect" onchange="setInning(this.value)" style="display:none">
     <option value="1">1回</option><option value="2">2回</option><option value="3">3回</option>
@@ -543,10 +544,11 @@ function loadGameFromStorage(){
     onBase=g.onBase||[];
     // 試合終了状態の復元
     if(gameState==='ended' && g.endScore){
-      document.getElementById('headerTitle').textContent = '試合記録';
-      document.getElementById('headerSub').textContent = '記録完了';
-      document.getElementById('outDisplay').innerHTML =
-        '<span style="font-size:13px;font-weight:700;color:var(--text)">'+g.endScore+'</span>';
+      document.getElementById('headerTitle').textContent = '⚾ 試合記録';
+      document.getElementById('headerSub').textContent = '完了しました';
+      var scoreEl2 = document.getElementById('scoreDisplay');
+      if(scoreEl2){ scoreEl2.textContent = g.endScore; scoreEl2.style.display=''; }
+      document.getElementById('outDisplay').innerHTML = '';
     }
     currentInning=g.currentInning||1;
     isOmote=g.isOmote!==undefined?g.isOmote:true;
@@ -971,14 +973,16 @@ function endGame(){
   Object.values(batData).forEach(function(s){ myScore += s.rbi||0; });
   Object.values(pitData).forEach(function(s){ oppScore += s.R||0; });
   var teamName = getTeamName();
-  // ヘッダー左：試合記録 / 記録完了
-  document.getElementById('headerTitle').textContent = '試合記録';
-  document.getElementById('headerSub').textContent = '記録完了';
+  // ヘッダー左：⚾ 試合記録 / 完了しました
+  document.getElementById('headerTitle').textContent = '⚾ 試合記録';
+  document.getElementById('headerSub').textContent = '完了しました';
   // ヘッダー中央：スコア
-  document.getElementById('outDisplay').innerHTML =
-    '<span style="font-size:13px;font-weight:700;color:var(--text)">'
-    + teamName + ' ' + myScore + ' - ' + oppScore + ' ' + opp
-    + '</span>';
+  var scoreEl = document.getElementById('scoreDisplay');
+  if(scoreEl){
+    scoreEl.textContent = teamName + ' ' + myScore + ' - ' + oppScore + ' ' + opp;
+    scoreEl.style.display = '';
+  }
+  document.getElementById('outDisplay').innerHTML = '';
   gameState = 'ended';
   document.getElementById('inningSelect').style.display = 'none';
   // endScoreを保存
