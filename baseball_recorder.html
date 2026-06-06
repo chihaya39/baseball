@@ -436,6 +436,8 @@ var currentInning = 1;
 var modalCallback = null;
 
 var sel = {batter:null,dir:null,type:null,result:null,extra:null,obtype:null};
+var gameState = 'before'; // 'before' | 'playing' | 'ended'
+var onBase = []; // 出塁中の選手 [{num, name}]
 var batOrder = [];   // [{order:1, num:'5'}, ...] 打順が確定した選手リスト（最大9人）
 var orderConfirmed = false;  // 9人確定したらtrue
 var rsel = {player:null,val:null};
@@ -516,6 +518,7 @@ function saveGameToStorage(){
     batData:batData, runData:runData, fldData:fldData, pitData:pitData,
     batLogs:batLogs, runLogs:runLogs, fldLogs:fldLogs, pitLogs:pitLogs,
     batOrder:batOrder, batSubPlayers:batSubPlayers, orderConfirmed:orderConfirmed,
+    gameState:gameState, onBase:onBase,
     currentInning:currentInning, isOmote:isOmote, isSenkou:isSenkou,
     batOutCount:batOutCount, pitOutCount:pitOutCount,
     currentPitcher:currentPitcher,
@@ -535,6 +538,8 @@ function loadGameFromStorage(){
     fldLogs=g.fldLogs||[]; pitLogs=g.pitLogs||[];
     batOrder=g.batOrder||[]; batSubPlayers=g.batSubPlayers||[];
     orderConfirmed=g.orderConfirmed||false;
+    gameState=g.gameState||'before';
+    onBase=g.onBase||[];
     currentInning=g.currentInning||1;
     isOmote=g.isOmote!==undefined?g.isOmote:true;
     isSenkou=g.isSenkou!==undefined?g.isSenkou:true;
@@ -632,6 +637,8 @@ function advanceInning(side){
       showInningToast(currentInning, '裏');
     }
   }
+  onBase = []; // チェンジで塁上クリア
+  buildRunMasterGrid();
   updateOutDisplay();
   saveGameToStorage();
   // チェンジ後にログを再描画して取消ボタンを消す
@@ -658,6 +665,16 @@ function showInningToast(inning, omote){
 function updateOutDisplay(){
   var el = document.getElementById('outDisplay');
   if(!el) return;
+
+  // 試合前・試合後はランプ非表示
+  if(gameState==='before'){
+    el.innerHTML = '<span style="font-size:11px;color:var(--text3)">試合前</span>';
+    return;
+  }
+  if(gameState==='ended'){
+    el.innerHTML = '<span style="font-size:11px;color:var(--text3)">試合終了</span>';
+    return;
+  }
 
   // 今攻撃中か守備中かを判定
   // 先攻: 表=攻撃, 裏=守備
@@ -918,6 +935,8 @@ function saveOrder(){
   // 先攻なら打撃、後攻なら投手タブへ
   switchTab(isSenkou ? 'batting' : 'pitcher');
   saveGameToStorage();
+  gameState = 'playing';
+  updateOutDisplay();
   updateGameHeader();
 }
 
@@ -945,6 +964,8 @@ function endGame(){
   var teamName = getTeamName();
   document.getElementById('headerTitle').textContent = teamName + ' ' + myScore + ' - ' + oppScore + ' ' + opp;
   document.getElementById('headerSub').textContent = '試合終了';
+  gameState = 'ended';
+  updateOutDisplay();
   saveGameToStorage();
 }
 
@@ -1164,39 +1185,28 @@ function buildRunMasterGrid(){
   if(!g) return;
   g.className = 'pg4';
   g.innerHTML = '';
-  if(orderConfirmed){
-    // スタメンラベル
-    var starterLabel = document.createElement('div');
-    starterLabel.style.cssText = 'grid-column:1/-1;font-size:10px;color:var(--text3);padding:2px 0 4px';
-    starterLabel.textContent = '― スタメン ―';
-    g.appendChild(starterLabel);
-    batOrder.forEach(function(o){
-      var btn = makeBatBtn(o.order+'番', o.num);
-      btn.onclick = (function(p,b){return function(){pickRunPlayer(p,b);};})(
-        {num:o.num, order:o.order, isSub:false}, btn);
+
+  // 出塁中の選手がいればそれだけ表示
+  if(onBase.length > 0){
+    var label = document.createElement('div');
+    label.style.cssText = 'grid-column:1/-1;font-size:10px;color:var(--text3);padding:2px 0 6px';
+    label.textContent = '出塁中の選手';
+    g.appendChild(label);
+    onBase.forEach(function(ob){
+      var order = batOrder.find(function(o){return String(o.num)===String(ob.num);});
+      var label2 = order ? order.order+'番' : '代打/走';
+      var btn = makeBatBtn(label2, ob.num);
+      btn.onclick = (function(p,b){return function(){
+        pickRunPlayer({num:p.num, order:label2, isSub:!order}, b);
+      };})(ob, btn);
       g.appendChild(btn);
     });
-    // 代打・代走も表示（区切りつき）
-    if(batSubPlayers.length > 0){
-      var sep = document.createElement('div');
-      sep.style.cssText = 'grid-column:1/-1;font-size:10px;color:var(--text3);padding:4px 0 2px;border-top:1px solid var(--border);margin-top:2px';
-      sep.textContent = '― 代打・代走 ―';
-      g.appendChild(sep);
-      batSubPlayers.forEach(function(p){
-        var btn = makeBatBtn('代打/走', p.num);
-        btn.onclick = (function(pp,b){return function(){pickRunPlayer({num:pp.num,order:'代',isSub:true},b);};})(p,btn);
-        g.appendChild(btn);
-      });
-    }
   } else {
-    master.filter(function(p){return p.num;}).forEach(function(p){
-      var already = batOrder.find(function(o){return o.num===p.num;});
-      var btn = makeBatBtn(already?already.order+'番':'#'+p.num, p.num);
-      btn.onclick = (function(pp,b){return function(){
-        pickRunPlayer({num:pp.num, order:already?already.order:0, isSub:false}, b);
-      };})(p, btn);
-      g.appendChild(btn);
-    });
+    // 出塁者なし
+    var empty = document.createElement('div');
+    empty.style.cssText = 'grid-column:1/-1;font-size:12px;color:var(--text3);padding:16px 0;text-align:center';
+    empty.textContent = '出塁中の選手はいません';
+    g.appendChild(empty);
   }
 }
 
@@ -1403,7 +1413,13 @@ function commitBat(){
     buildFldMasterGrid();
   }
   batLogs.unshift({label:logInning+'回 '+p.order+'番 #'+p.num,code:codeWithRbi,time:nowTime()});
+  // 出塁管理
+  if(sel.result==='○'){
+    if(!onBase.find(function(x){return x.num===p.num;}))
+      onBase.push({num:p.num});
+  }
   renderLog('batLog',batLogs);
+  buildRunMasterGrid();
   saveGameToStorage();
   resetBat();
   window.scrollTo(0, 0);
@@ -1444,6 +1460,12 @@ function commitRun(){
   if(!runData[p.num]) runData[p.num]={'SB+':0,'SB-':0,'PO':0,'WP':0,'PB':0};
   runData[p.num][val]=(runData[p.num][val]||0)+1;
   // 盗塁失敗・牽制アウトはアウトカウント増加
+  // アウトになったら塁上から除外
+  if(val==='SB-' || val==='PO'){
+    onBase = onBase.filter(function(x){return x.num!==p.num;});
+    buildRunMasterGrid();
+  }
+  // 盗塁成功・WP・PBで次の塁へ（塁上は維持）
   var runLogInning = currentInning;
   if(val==='SB-' || val==='PO'){
     var isAttacking = isSenkou ? isOmote : !isOmote;
@@ -1885,6 +1907,7 @@ function clearAll(){
   if(!confirm('全データをクリアしますか？')) return;
   batData={};runData={};fldData={};pitData={};
   batOrder=[]; orderConfirmed=false; batSubPlayers=[];
+  gameState='before'; onBase=[];
   batLogs=[];runLogs=[];fldLogs=[];pitLogs=[];
   batOutCount=0;pitOutCount=0;isOmote=true;
   currentPitcher=null;
