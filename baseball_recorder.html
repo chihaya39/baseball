@@ -545,10 +545,14 @@ function loadGameFromStorage(){
     // 試合終了状態の復元
     if(gameState==='ended' && g.endScore){
       document.getElementById('headerTitle').textContent = '⚾ 試合記録';
-      document.getElementById('headerSub').textContent = '完了しました';
+      document.getElementById('headerSub').textContent = '';
       var scoreEl2 = document.getElementById('scoreDisplay');
-      if(scoreEl2){ scoreEl2.textContent = g.endScore; scoreEl2.style.display=''; }
-      document.getElementById('outDisplay').innerHTML = '';
+      if(scoreEl2){
+        scoreEl2.innerHTML = '<span style="font-size:15px;font-weight:700;color:var(--text)">'+g.endScore+'</span>';
+        scoreEl2.style.display='';
+      }
+      document.getElementById('outDisplay').innerHTML =
+        '<span style="font-size:11px;color:var(--text3)">試合終了</span>';
     }
     currentInning=g.currentInning||1;
     isOmote=g.isOmote!==undefined?g.isOmote:true;
@@ -973,16 +977,19 @@ function endGame(){
   Object.values(batData).forEach(function(s){ myScore += s.rbi||0; });
   Object.values(pitData).forEach(function(s){ oppScore += s.R||0; });
   var teamName = getTeamName();
-  // ヘッダー左：⚾ 試合記録 / 完了しました
+  // ヘッダー左：⚾ 試合記録（サブなし）
   document.getElementById('headerTitle').textContent = '⚾ 試合記録';
-  document.getElementById('headerSub').textContent = '完了しました';
-  // ヘッダー中央：スコア
+  document.getElementById('headerSub').textContent = '';
+  // ヘッダー中央：スコア（大きめ）
   var scoreEl = document.getElementById('scoreDisplay');
   if(scoreEl){
-    scoreEl.textContent = teamName + ' ' + myScore + ' - ' + oppScore + ' ' + opp;
+    scoreEl.innerHTML = '<span style="font-size:15px;font-weight:700;color:var(--text)">'
+      + teamName + ' ' + myScore + ' - ' + oppScore + ' ' + opp + '</span>';
     scoreEl.style.display = '';
   }
-  document.getElementById('outDisplay').innerHTML = '';
+  // ヘッダー右：試合終了
+  document.getElementById('outDisplay').innerHTML =
+    '<span style="font-size:11px;color:var(--text3)">試合終了</span>';
   gameState = 'ended';
   document.getElementById('inningSelect').style.display = 'none';
   // endScoreを保存
