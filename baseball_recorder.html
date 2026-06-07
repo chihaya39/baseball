@@ -485,6 +485,14 @@ function init(){
     var be2=document.getElementById('btnGameEnd');
     if(gameState==='playing'||gameState==='ended'){
       if(bs2){bs2.disabled=true;bs2.style.opacity='0.4';}
+      var gd2=document.getElementById('gameDate');
+      var op2=document.getElementById('opponent');
+      var sk2=document.getElementById('btnSenkou');
+      var kk2=document.getElementById('btnKokou');
+      if(gd2) gd2.disabled=true;
+      if(op2) op2.disabled=true;
+      if(sk2){ sk2.style.pointerEvents='none'; sk2.style.opacity='0.6'; }
+      if(kk2){ kk2.style.pointerEvents='none'; kk2.style.opacity='0.6'; }
     }
     if(gameState==='ended'){
       if(be2){be2.disabled=true;be2.style.opacity='0.4';}
@@ -629,7 +637,7 @@ function advanceInning(side){
     } else {
       // 後攻: 裏→次の回の表へ
       isOmote = true;
-      if(currentInning < 9){
+      if(currentInning < 7){
         currentInning++;
         document.getElementById('inningSelect').value = currentInning;
         showInningToast(currentInning, '表');
@@ -644,7 +652,7 @@ function advanceInning(side){
     if(isSenkou){
       // 先攻: 裏→次の回の表へ
       isOmote = true;
-      if(currentInning < 9){
+      if(currentInning < 7){
         currentInning++;
         document.getElementById('inningSelect').value = currentInning;
         showInningToast(currentInning, '表');
@@ -959,6 +967,15 @@ function saveOrder(){
   document.getElementById('inningSelect').style.display = '';
   var bs = document.getElementById('btnGameStart');
   if(bs){ bs.disabled=true; bs.style.opacity='0.4'; }
+  // 試合情報・先攻後攻を無効化
+  var gd=document.getElementById('gameDate');
+  var op=document.getElementById('opponent');
+  var sk=document.getElementById('btnSenkou');
+  var kk=document.getElementById('btnKokou');
+  if(gd) gd.disabled=true;
+  if(op) op.disabled=true;
+  if(sk){ sk.style.pointerEvents='none'; sk.style.opacity='0.6'; }
+  if(kk){ kk.style.pointerEvents='none'; kk.style.opacity='0.6'; }
   updateOutDisplay();
   updateGameHeader();
 }
@@ -1953,6 +1970,14 @@ function clearAll(){
   var be3=document.getElementById('btnGameEnd');
   if(bs3){bs3.disabled=false;bs3.style.opacity='';}
   if(be3){be3.disabled=false;be3.style.opacity='';}
+  var gd3=document.getElementById('gameDate');
+  var op3=document.getElementById('opponent');
+  var sk3=document.getElementById('btnSenkou');
+  var kk3=document.getElementById('btnKokou');
+  if(gd3) gd3.disabled=false;
+  if(op3) op3.disabled=false;
+  if(sk3){ sk3.style.pointerEvents=''; sk3.style.opacity=''; }
+  if(kk3){ kk3.style.pointerEvents=''; kk3.style.opacity=''; }
   batLogs=[];runLogs=[];fldLogs=[];pitLogs=[];
   batOutCount=0;pitOutCount=0;isOmote=true;
   currentPitcher=null;
