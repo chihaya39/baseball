@@ -178,11 +178,11 @@ td:first-child{text-align:left;padding-left:4px}
     <div id="btnKokou" class="batting-order-btn" onclick="setSenkoKokou('ko')">🛡 後攻（1回表が守備）</div>
   </div>
 
-  <button class="btn btn-green" onclick="saveOrder()" style="padding:15px;font-size:16px">✓ 試合開始</button>
+  <button class="btn btn-green" id="btnGameStart" onclick="saveOrder()" style="padding:15px;font-size:16px">✓ 試合開始</button>
 
   <div style="height:20px"></div>
 
-  <button class="btn" onclick="endGame()" style="padding:12px;font-size:14px;background:var(--bg3);color:var(--text2);border:1px solid var(--border)">🏁 試合終了</button>
+  <button class="btn" id="btnGameEnd" onclick="endGame()" style="padding:12px;font-size:14px;background:var(--bg3);color:var(--text2);border:1px solid var(--border)">🏁 試合終了</button>
 
   <div style="height:1px;background:var(--border);margin:24px 0"></div>
 
@@ -481,6 +481,14 @@ function init(){
     updateOutDisplay();
     document.getElementById('inningSelect').value = currentInning;
     document.getElementById('inningSelect').style.display = (gameState==='playing') ? '' : 'none';
+    var bs2=document.getElementById('btnGameStart');
+    var be2=document.getElementById('btnGameEnd');
+    if(gameState==='playing'||gameState==='ended'){
+      if(bs2){bs2.disabled=true;bs2.style.opacity='0.4';}
+    }
+    if(gameState==='ended'){
+      if(be2){be2.disabled=true;be2.style.opacity='0.4';}
+    }
     // ログを復元
     renderLog('batLog', batLogs);
     renderLog('runLog', runLogs);
@@ -949,6 +957,8 @@ function saveOrder(){
   saveGameToStorage();
   gameState = 'playing';
   document.getElementById('inningSelect').style.display = '';
+  var bs = document.getElementById('btnGameStart');
+  if(bs){ bs.disabled=true; bs.style.opacity='0.4'; }
   updateOutDisplay();
   updateGameHeader();
 }
@@ -991,6 +1001,8 @@ function endGame(){
     '<span style="font-size:11px;color:var(--text3)">試合終了</span>';
   gameState = 'ended';
   document.getElementById('inningSelect').style.display = 'none';
+  var be = document.getElementById('btnGameEnd');
+  if(be){ be.disabled=true; be.style.opacity='0.4'; }
   // endScoreを保存
   var savedGame = JSON.parse(localStorage.getItem('baseball_game')||'{}');
   savedGame.endScore = teamName + ' ' + myScore + ' - ' + oppScore + ' ' + opp;
@@ -1937,6 +1949,10 @@ function clearAll(){
   batData={};runData={};fldData={};pitData={};
   batOrder=[]; orderConfirmed=false; batSubPlayers=[];
   gameState='before'; onBase=[];
+  var bs3=document.getElementById('btnGameStart');
+  var be3=document.getElementById('btnGameEnd');
+  if(bs3){bs3.disabled=false;bs3.style.opacity='';}
+  if(be3){be3.disabled=false;be3.style.opacity='';}
   batLogs=[];runLogs=[];fldLogs=[];pitLogs=[];
   batOutCount=0;pitOutCount=0;isOmote=true;
   currentPitcher=null;
