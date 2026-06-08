@@ -1057,15 +1057,32 @@ function doImport(file){
       var games = {}; // opponent -> set
       var rowCount = 0;
 
+      // セル値を安全に文字列化するヘルパー
+      function cellStr(cell){
+        var v = cell.value;
+        if(v === null || v === undefined) return '';
+        if(typeof v === 'object'){
+          // 日付オブジェクト
+          if(v instanceof Date) return v.toLocaleDateString('ja-JP');
+          // richText
+          if(v.richText) return v.richText.map(function(r){return r.text;}).join('');
+          // formula result
+          if(v.result !== undefined) return String(v.result);
+          // hyperlink
+          if(v.text !== undefined) return String(v.text);
+          return String(v);
+        }
+        return String(v);
+      }
+
       ws.eachRow(function(row, rowNum){
         if(rowNum <= 4) return; // ヘッダー行をスキップ（1〜4行目）
-        var dateVal = row.getCell(1).value;
-        var opponent = (row.getCell(2).value || '').toString().trim();
-        var order = row.getCell(3).value;
-        var num = (row.getCell(4).value || '').toString().trim();
-        var name = (row.getCell(5).value || '').toString().trim();
-        var pos = (row.getCell(6).value || '').toString().trim();
-        var batRaw = (row.getCell(7).value || '').toString().trim();
+        var opponent = cellStr(row.getCell(2)).trim();
+        var order = cellStr(row.getCell(3)).trim();
+        var num = cellStr(row.getCell(4)).trim();
+        var name = cellStr(row.getCell(5)).trim();
+        var pos = cellStr(row.getCell(6)).trim();
+        var batRaw = cellStr(row.getCell(7)).trim();
 
         if(!num || !batRaw) return;
 
