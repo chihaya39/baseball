@@ -887,7 +887,7 @@ function renderPlayerDetail(sel, players){
     var bbList = res.filter(function(x){return isBB(x.p);});
     var buntList = res.filter(function(x){return x.p.result==='B';});
     var ab = pa - bbList.length - buntList.length;
-    var hList = res.filter(function(x){return x.p.result==='○';});
+    var hList = res.filter(function(x){return isHit(x.p);});
     var kList = res.filter(function(x){return isK(x.p);});
     var avg = ab>0 ? hList.length/ab : 0;
     var obCount = res.filter(function(x){return isOnBase(x.p);}).length;
