@@ -572,11 +572,11 @@ function getPlayerResults(num){
 function getAllResults(){
   if(!gameData || !gameData.batData) return [];
   var all = [];
-  Object.keys(gameData.batData).forEach(function(num){
-    var bd = gameData.batData[num];
+  Object.keys(gameData.batData).forEach(function(key){
+    var bd = gameData.batData[key];
     if(bd && bd.results){
       bd.results.forEach(function(r){
-        all.push({num:num, code:r});
+        all.push({num:key, code:r});
       });
     }
   });
@@ -585,7 +585,15 @@ function getAllResults(){
 
 function getMasterName(num){
   var p = masterData.find(function(x){return x.num===num;});
-  return p ? p.name : '#'+num;
+  return p ? p.name : num;
+}
+
+// batDataのキー（名前）から表示用ラベルを返す
+function getPlayerLabel(nameKey){
+  // batData[nameKey].numが最新背番号
+  var bd = gameData && gameData.batData && gameData.batData[nameKey];
+  var num = bd ? (bd.num || '') : '';
+  return {num: num, name: nameKey};
 }
 
 // ============================================================
@@ -833,15 +841,16 @@ function renderPlayerDetail(sel, players){
   if(sel === 'all'){
     // 全体テーブル
     var rows = '';
-    players.forEach(function(num,i){
-      var bd = gameData.batData[num];
+    players.forEach(function(key,i){
+      var bd = gameData.batData[key];
       if(!bd || !bd.results) return;
+      var lbl = getPlayerLabel(key);
       var res = bd.results.map(parseCode).filter(Boolean);
       var pa = res.length;
       var bb = res.filter(function(p){return isBB(p);}).length;
       var bunt = res.filter(function(p){return p.result==='B';}).length;
       var ab = pa - bb - bunt;
-      var h = res.filter(function(p){return p.result==='○';}).length;
+      var h = res.filter(function(p){return isHit(p);}).length;
       var k = res.filter(function(p){return isK(p);}).length;
       var avg = ab>0 ? h/ab : 0;
       var extra = res.filter(function(p){return p.extra;}).length;
@@ -850,7 +859,7 @@ function renderPlayerDetail(sel, players){
       var avgCls = avg>=0.4?'avg-high':avg>=0.25?'avg-mid':'avg-low';
       var orderLabel = bd.order ? (typeof bd.order==='number'?bd.order+'番':bd.order) : '-';
       rows += '<tr style="animation:fadeUp .3s '+(i*0.05)+'s ease both">'
-        +'<td><span class="player-num">#'+num+'</span> <span class="player-name">'+getMasterName(num)+'</span><br><span style="font-size:9px;color:var(--text3)">'+orderLabel+'</span></td>'
+        +'<td><span class="player-num">'+(lbl.num?'#'+lbl.num:'')+'</span> <span class="player-name">'+lbl.name+'</span><br><span style="font-size:9px;color:var(--text3)">'+orderLabel+'</span></td>'
         +'<td>'+pa+'</td>'
         +'<td>'+ab+'</td>'
         +'<td class="'+avgCls+'">'+(ab>0?fmtAvg(avg):'.-')+'</td>'
@@ -868,6 +877,7 @@ function renderPlayerDetail(sel, players){
   } else {
     // 個人詳細
     var bd = gameData.batData[sel];
+    var lbl = getPlayerLabel(sel);
     if(!bd || !bd.results || bd.results.length===0){
       wrap.innerHTML = '<div class="no-data">打席データなし</div>';
       return;
@@ -957,17 +967,18 @@ function renderLog(){
     return;
   }
   // 打席ログ（選手ごとにまとめて表示）
-  var players = Object.keys(gameData.batData).filter(function(num){
-    var bd = gameData.batData[num];
+  var players = Object.keys(gameData.batData).filter(function(key){
+    var bd = gameData.batData[key];
     return bd && bd.results && bd.results.length>0;
   });
   var html = '';
-  players.forEach(function(num){
-    var bd = gameData.batData[num];
+  players.forEach(function(key){
+    var bd = gameData.batData[key];
+    var lbl = getPlayerLabel(key);
     var orderLabel = bd.order ? (typeof bd.order==='number'?bd.order+'番打者':bd.order) : '';
     html += '<div class="game-log-wrap" style="margin-bottom:10px">'
       +'<div class="game-log-header">'
-      +'<div class="game-log-title"><span class="player-num">#'+num+'</span> '+getMasterName(num)+'</div>'
+      +'<div class="game-log-title"><span class="player-num">'+(lbl.num?'#'+lbl.num:'')+'</span> '+lbl.name+'</div>'
       +'<div class="game-log-date">'+orderLabel+'</div>'
       +'</div><div class="game-log-body">';
     bd.results.forEach(function(code,i){
@@ -1084,19 +1095,22 @@ function doImport(file){
         var pos = cellStr(row.getCell(6)).trim();
         var batRaw = cellStr(row.getCell(7)).trim();
 
-        if(!num || !batRaw) return;
+        if(!name || !batRaw) return; // 名前をキーにする
 
-        // マスタ登録
-        if(name) masterMap[num] = {name:name, pos:pos};
+        // マスタ登録（名前→背番号・ポジションの最新値を保持）
+        masterMap[name] = {name:name, num:num, pos:pos};
 
         // 打撃記録をカンマ分割
         var codes = batRaw.split(',').map(function(c){ return c.trim(); }).filter(Boolean);
         if(codes.length === 0) return;
 
-        if(!batData[num]){
-          batData[num] = {results:[], rbi:0, ab:0, pa:0, h:0, k:0, bb:0, order:order, pos:pos};
+        if(!batData[name]){
+          batData[name] = {results:[], rbi:0, ab:0, pa:0, h:0, k:0, bb:0, order:order, pos:pos, num:num};
         }
-        codes.forEach(function(c){ batData[num].results.push(c); });
+        // 背番号・ポジションは最新値で更新
+        batData[name].num = num;
+        batData[name].pos = pos;
+        codes.forEach(function(c){ batData[name].results.push(c); });
 
         if(opponent) games[opponent] = true;
         rowCount++;
@@ -1116,10 +1130,15 @@ function doImport(file){
         _source: 'excel'
       };
 
-      // masterDataを補完
-      Object.keys(masterMap).forEach(function(num){
-        if(!masterData.find(function(m){ return m.num===num; })){
-          masterData.push({num:num, name:masterMap[num].name, pos:masterMap[num].pos});
+      // masterDataを補完（名前キーで管理）
+      Object.keys(masterMap).forEach(function(name){
+        var info = masterMap[name];
+        var existing = masterData.find(function(m){ return m.name===name; });
+        if(existing){
+          existing.num = info.num; // 背番号は最新に更新
+          existing.pos = info.pos;
+        } else {
+          masterData.push({num:info.num, name:name, pos:info.pos});
         }
       });
 
