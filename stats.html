@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="野球集計">
-<title>野球集計</title>
+<meta name="apple-mobile-web-app-title" content="打撃成績">
+<title>打撃成績</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+JP:wght@300;400;500;700&display=swap');
 
@@ -325,18 +325,29 @@ main{position:relative;z-index:1;padding:16px;padding-bottom:40px}
 <!-- ========== OVERVIEW TAB ========== -->
 <div class="panel active" id="panel-overview">
   <div class="sec-label">チーム打撃</div>
-  <div class="kpi-grid" id="kpiTeam">
-    <div class="kpi-card gold"><div class="kpi-val" id="kpiAvg">.---</div><div class="kpi-label">打率</div><div class="kpi-sub">チーム全体</div></div>
-    <div class="kpi-card blue"><div class="kpi-val" id="kpiOBP">.---</div><div class="kpi-label">出塁率</div><div class="kpi-sub">OBP</div></div>
-    <div class="kpi-card green"><div class="kpi-val" id="kpiH">0</div><div class="kpi-label">安打</div><div class="kpi-sub">Total Hits</div></div>
-    <div class="kpi-card purple"><div class="kpi-val" id="kpiPA">0</div><div class="kpi-label">打席</div><div class="kpi-sub">Plate App.</div></div>
+  <div class="kpi-grid" style="margin-bottom:8px">
+    <div class="kpi-card"><div class="kpi-val" style="color:var(--text)" id="kpiPA">0</div><div class="kpi-label" style="color:var(--text2)">打席 PA</div></div>
+    <div class="kpi-card"><div class="kpi-val" style="color:var(--text)" id="kpiAB">0</div><div class="kpi-label" style="color:var(--text2)">打数 AB</div></div>
   </div>
-
-  <div class="kpi-grid" id="kpiTeam2">
-    <div class="kpi-card"><div class="kpi-val" style="color:var(--red)" id="kpiK">0</div><div class="kpi-label" style="color:var(--text2)">三振</div></div>
-    <div class="kpi-card"><div class="kpi-val" style="color:var(--purple)" id="kpiBB">0</div><div class="kpi-label" style="color:var(--text2)">四死球</div></div>
-    <div class="kpi-card"><div class="kpi-val" style="color:var(--gold)" id="kpiRBI">0</div><div class="kpi-label" style="color:var(--text2)">打点</div></div>
-    <div class="kpi-card"><div class="kpi-val" style="color:var(--green)" id="kpiExtra">0</div><div class="kpi-label" style="color:var(--text2)">長打</div></div>
+  <div class="kpi-grid" style="margin-bottom:8px">
+    <div class="kpi-card green"><div class="kpi-val" id="kpiH">0</div><div class="kpi-label">安打 H</div></div>
+    <div class="kpi-card"><div class="kpi-val" style="color:var(--green)" id="kpiExtra">0</div><div class="kpi-label" style="color:var(--text2)">長打 XBH</div></div>
+  </div>
+  <div class="kpi-grid" style="margin-bottom:8px">
+    <div class="kpi-card"><div class="kpi-val" style="color:var(--gold)" id="kpiRBI">0</div><div class="kpi-label" style="color:var(--text2)">打点 RBI</div></div>
+    <div class="kpi-card"><div class="kpi-val" style="color:var(--green)" id="kpiSB">0</div><div class="kpi-label" style="color:var(--text2)">盗塁 SB</div></div>
+  </div>
+  <div class="kpi-grid" style="margin-bottom:8px">
+    <div class="kpi-card"><div class="kpi-val" style="color:var(--red)" id="kpiK">0</div><div class="kpi-label" style="color:var(--text2)">三振 K <span id="kpiKpct" style="color:var(--red);font-size:11px;margin-left:6px"></span></div></div>
+    <div class="kpi-card"><div class="kpi-val" style="color:var(--purple)" id="kpiBB">0</div><div class="kpi-label" style="color:var(--text2)">四死球 <span id="kpiBBpct" style="color:var(--purple);font-size:11px;margin-left:6px"></span></div></div>
+  </div>
+  <div class="kpi-grid" style="margin-bottom:8px">
+    <div class="kpi-card gold"><div class="kpi-val" id="kpiAvg">.---</div><div class="kpi-label">打率 AVG</div></div>
+    <div class="kpi-card blue"><div class="kpi-val" id="kpiOBP">.---</div><div class="kpi-label">出塁率 OBP</div></div>
+  </div>
+  <div class="kpi-grid" style="margin-bottom:16px">
+    <div class="kpi-card purple"><div class="kpi-val" id="kpiSLG">.---</div><div class="kpi-label">長打率 SLG</div></div>
+    <div class="kpi-card" style="border-color:rgba(232,184,75,0.6);background:rgba(232,184,75,0.1)"><div class="kpi-val" style="color:var(--accent)" id="kpiOPS">.---</div><div class="kpi-label" style="color:var(--accent)">OPS</div></div>
   </div>
 
   <div class="sec-label">打球種別</div>
@@ -640,14 +651,32 @@ function renderOverview(){
     }
   });
 
+  // チームSLG・OPS計算
+  var singles = hits - extra;
+  var tb = singles + extra * 2;
+  var slg = ab > 0 ? tb / ab : 0;
+  var ops = obp + slg;
+  // チーム盗塁集計
+  var totalSB = 0;
+  Object.keys(gameData.batData).forEach(function(key){
+    var bd = gameData.batData[key];
+    if(bd && bd.sb) totalSB += bd.sb;
+  });
+
   document.getElementById('kpiAvg').textContent = ab>0 ? fmtAvg(avg) : '.---';
   document.getElementById('kpiOBP').textContent = pa>0 ? fmtAvg(obp) : '.---';
+  document.getElementById('kpiSLG').textContent = ab>0 ? fmtAvg(slg) : '.---';
+  document.getElementById('kpiOPS').textContent = ab>0 ? fmtOPS(ops) : '.---';
   document.getElementById('kpiH').textContent = hits;
   document.getElementById('kpiPA').textContent = pa;
+  document.getElementById('kpiAB').textContent = ab;
   document.getElementById('kpiK').textContent = k;
   document.getElementById('kpiBB').textContent = bb;
   document.getElementById('kpiRBI').textContent = totalRbi;
   document.getElementById('kpiExtra').textContent = extra;
+  document.getElementById('kpiSB').textContent = totalSB;
+  document.getElementById('kpiKpct').textContent = pa>0 ? (k/pa*100).toFixed(1)+'%' : '';
+  document.getElementById('kpiBBpct').textContent = pa>0 ? (bb/pa*100).toFixed(1)+'%' : '';
 
   // 打球種別バー
   var gCount = parsed.filter(function(x){return x.p.type==='G';}).length;
