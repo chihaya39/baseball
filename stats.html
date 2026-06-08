@@ -67,7 +67,7 @@ body::before{
   display:flex;gap:2px;padding:12px 16px 0;
   border-bottom:1px solid var(--border);
   background:var(--bg2);
-  position:sticky;top:57px;z-index:90;
+  position:sticky;top:107px;z-index:90;
 }
 .tab{
   padding:8px 16px 10px;font-size:12px;font-weight:700;
@@ -301,6 +301,16 @@ main{position:relative;z-index:1;padding:16px;padding-bottom:40px}
     <div class="header-team" id="headerOpponent">—</div>
     <div class="last-updated" id="lastUpdated">データ読み込み中...</div>
   </div>
+</div>
+
+<!-- IMPORT BAR -->
+<div id="importBar" style="background:#0d1220;border-bottom:1px solid #1e2a45;padding:8px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+  <label id="importLabel" style="display:inline-flex;align-items:center;gap:7px;background:rgba(232,184,75,0.12);border:1px solid rgba(232,184,75,0.4);border-radius:20px;padding:7px 16px;cursor:pointer;font-size:12px;font-weight:700;color:#e8b84b;letter-spacing:.06em">
+    📂 Excelを読み込む
+    <input type="file" accept=".xlsx" id="xlsxInput" style="display:none" onchange="importExcel(this)">
+  </label>
+  <div id="importStatus" style="font-size:11px;color:#4a5570">集計Excelの「記録入力」シートを読み込めます</div>
+  <button id="importClearBtn" onclick="clearImport()" style="display:none;margin-left:auto;background:none;border:1px solid #2a3a5a;border-radius:16px;color:#4a5570;font-size:11px;padding:5px 12px;cursor:pointer">✕ クリア</button>
 </div>
 
 <div class="tab-bar">
@@ -992,6 +1002,141 @@ function switchTab(name){
   if(name==='direction') renderDirection();
   if(name==='players') renderPlayers();
   if(name==='log') renderLog();
+}
+
+// ============================================================
+// EXCEL IMPORT
+// ============================================================
+var importedData = null; // Excelから読んだ場合はここに入る
+
+function importExcel(input){
+  var file = input.files[0];
+  if(!file) return;
+  var status = document.getElementById('importStatus');
+  status.style.color = '#e8b84b';
+  status.textContent = '読み込み中...';
+
+  // ExcelJSを動的ロード（baseball_recorder.htmlと同じCDN）
+  if(typeof ExcelJS === 'undefined'){
+    var s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js';
+    s.onload = function(){ doImport(file); };
+    s.onerror = function(){ status.style.color='#f56565'; status.textContent='ExcelJSの読み込みに失敗しました'; };
+    document.head.appendChild(s);
+  } else {
+    doImport(file);
+  }
+}
+
+function doImport(file){
+  var status = document.getElementById('importStatus');
+  var reader = new FileReader();
+  reader.onload = function(e){
+    var wb = new ExcelJS.Workbook();
+    wb.xlsx.load(e.target.result).then(function(){
+      // 「記録入力」シートを探す
+      var ws = wb.getWorksheet('記録入力');
+      if(!ws){
+        // シート名が違う場合は1枚目を試す
+        ws = wb.worksheets.find(function(w){ return w.name.includes('記録'); });
+      }
+      if(!ws){
+        status.style.color='#f56565';
+        status.textContent='「記録入力」シートが見つかりません';
+        return;
+      }
+
+      // batData形式に変換
+      // 列: A=試合日, B=対戦相手, C=打順, D=背番号, E=名前, F=ポジション, G=打撃記録
+      var batData = {};
+      var masterMap = {}; // num -> {name, pos}
+      var games = {}; // opponent -> set
+      var rowCount = 0;
+
+      ws.eachRow(function(row, rowNum){
+        if(rowNum <= 4) return; // ヘッダー行をスキップ（1〜4行目）
+        var dateVal = row.getCell(1).value;
+        var opponent = (row.getCell(2).value || '').toString().trim();
+        var order = row.getCell(3).value;
+        var num = (row.getCell(4).value || '').toString().trim();
+        var name = (row.getCell(5).value || '').toString().trim();
+        var pos = (row.getCell(6).value || '').toString().trim();
+        var batRaw = (row.getCell(7).value || '').toString().trim();
+
+        if(!num || !batRaw) return;
+
+        // マスタ登録
+        if(name) masterMap[num] = {name:name, pos:pos};
+
+        // 打撃記録をカンマ分割
+        var codes = batRaw.split(',').map(function(c){ return c.trim(); }).filter(Boolean);
+        if(codes.length === 0) return;
+
+        if(!batData[num]){
+          batData[num] = {results:[], rbi:0, ab:0, pa:0, h:0, k:0, bb:0, order:order, pos:pos};
+        }
+        codes.forEach(function(c){ batData[num].results.push(c); });
+
+        if(opponent) games[opponent] = true;
+        rowCount++;
+      });
+
+      if(rowCount === 0){
+        status.style.color='#f56565';
+        status.textContent='データが見つかりません（5行目以降にデータがあるか確認してください）';
+        return;
+      }
+
+      // importedDataにセット
+      importedData = {
+        batData: batData,
+        opponent: Object.keys(games).join('・'),
+        gameDate: '',
+        _source: 'excel'
+      };
+
+      // masterDataを補完
+      Object.keys(masterMap).forEach(function(num){
+        if(!masterData.find(function(m){ return m.num===num; })){
+          masterData.push({num:num, name:masterMap[num].name, pos:masterMap[num].pos});
+        }
+      });
+
+      // gameDataをimportedDataで上書き
+      gameData = importedData;
+
+      var oppLabel = Object.keys(games).join('・') || 'Excelデータ';
+      document.getElementById('headerOpponent').textContent = oppLabel;
+      document.getElementById('lastUpdated').textContent = 'Excelより読み込み済み';
+
+      var totalPA = 0;
+      Object.values(batData).forEach(function(bd){ totalPA += (bd.results||[]).length; });
+      status.style.color = '#3ecf8e';
+      status.textContent = '✓ 読み込み完了 — ' + Object.keys(batData).length + '選手 / ' + totalPA + '打席';
+      document.getElementById('importClearBtn').style.display = '';
+
+      // 現在表示中のタブを再描画
+      var activePanel = panels.find(function(n){ return document.getElementById('panel-'+n).className.includes('active'); });
+      switchTab(activePanel || 'overview');
+
+    }).catch(function(err){
+      status.style.color='#f56565';
+      status.textContent='読み込みエラー: ' + err.message;
+    });
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function clearImport(){
+  importedData = null;
+  // localStorageのデータに戻す
+  loadData();
+  document.getElementById('importStatus').style.color = '#4a5570';
+  document.getElementById('importStatus').textContent = '集計Excelの「記録入力」シートを読み込めます';
+  document.getElementById('importClearBtn').style.display = 'none';
+  document.getElementById('xlsxInput').value = '';
+  var activePanel = panels.find(function(n){ return document.getElementById('panel-'+n).className.includes('active'); });
+  switchTab(activePanel || 'overview');
 }
 
 // ============================================================
