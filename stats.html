@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="打撃成績">
+<title>打撃成績</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+JP:wght@300;400;500;700&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+
+:root{
+  --bg:#080b12;
+  --bg2:#0d1220;
+  --bg3:#111827;
+  --bg4:#1a2236;
+  --accent:#e8b84b;
+  --accent2:#f5d07a;
+  --blue:#4f8ef7;
+  --green:#3ecf8e;
+  --red:#f56565;
+  --purple:#a78bfa;
+  --text:#f0f4ff;
+  --text2:#8b98b8;
+  --text3:#4a5570;
+  --border:#1e2a45;
+  --border2:#2a3a5a;
+  --gold:#e8b84b;
+}
+
+html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-serif;overflow-x:hidden}
+
+/* ---- BACKGROUND ---- */
+body::before{
+  content:'';position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse 60% 40% at 80% 10%, rgba(79,142,247,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 60% at 20% 80%, rgba(232,184,75,0.06) 0%, transparent 60%),
+    repeating-linear-gradient(0deg, transparent, transparent 60px, rgba(255,255,255,0.01) 60px, rgba(255,255,255,0.01) 61px),
+    repeating-linear-gradient(90deg, transparent, transparent 60px, rgba(255,255,255,0.01) 60px, rgba(255,255,255,0.01) 61px);
+  pointer-events:none;z-index:0;
+}
+
+/* ---- HEADER ---- */
+.header{
+  position:sticky;top:0;z-index:100;
+  background:rgba(8,11,18,0.92);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+  padding:12px 16px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.header-brand{display:flex;align-items:baseline;gap:10px}
+.header-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:26px;letter-spacing:.12em;
+  color:var(--accent);line-height:1;
+}
+.header-sub{font-size:11px;color:var(--text3);letter-spacing:.08em;font-weight:500}
+.header-team{font-size:12px;color:var(--text2);font-weight:700}
+.last-updated{font-size:10px;color:var(--text3)}
+
+/* ---- TABS ---- */
+.tab-bar{
+  display:flex;gap:2px;padding:12px 16px 0;
+  border-bottom:1px solid var(--border);
+  background:var(--bg2);
+  position:sticky;top:57px;z-index:90;
+}
+.tab{
+  padding:8px 16px 10px;font-size:12px;font-weight:700;
+  letter-spacing:.06em;color:var(--text3);cursor:pointer;
+  border-bottom:2px solid transparent;transition:all .2s;
+  white-space:nowrap;
+}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab:hover:not(.active){color:var(--text2)}
+
+/* ---- MAIN ---- */
+main{position:relative;z-index:1;padding:16px;padding-bottom:40px}
+
+/* ---- PANEL ---- */
+.panel{display:none}.panel.active{display:block}
+
+/* ---- SECTION LABEL ---- */
+.sec-label{
+  font-size:10px;font-weight:700;letter-spacing:.14em;
+  color:var(--text3);text-transform:uppercase;
+  margin-bottom:10px;margin-top:20px;
+  display:flex;align-items:center;gap:8px;
+}
+.sec-label::after{content:'';flex:1;height:1px;background:var(--border)}
+.sec-label:first-child{margin-top:0}
+
+/* ---- KPI CARDS ---- */
+.kpi-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:20px}
+.kpi-grid.wide{grid-template-columns:repeat(4,1fr)}
+.kpi-card{
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:12px;padding:14px 12px;
+  position:relative;overflow:hidden;
+  animation:fadeUp .4s ease both;
+}
+.kpi-card::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg, rgba(255,255,255,0.03) 0%, transparent 60%);
+  pointer-events:none;
+}
+.kpi-card.gold{border-color:rgba(232,184,75,0.4);background:rgba(232,184,75,0.06)}
+.kpi-card.blue{border-color:rgba(79,142,247,0.3);background:rgba(79,142,247,0.06)}
+.kpi-card.green{border-color:rgba(62,207,142,0.3);background:rgba(62,207,142,0.06)}
+.kpi-card.purple{border-color:rgba(167,139,250,0.3);background:rgba(167,139,250,0.06)}
+.kpi-val{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:36px;letter-spacing:.04em;line-height:1;
+  margin-bottom:4px;
+}
+.kpi-card.gold .kpi-val{color:var(--gold)}
+.kpi-card.blue .kpi-val{color:var(--blue)}
+.kpi-card.green .kpi-val{color:var(--green)}
+.kpi-card.purple .kpi-val{color:var(--purple)}
+.kpi-label{font-size:10px;color:var(--text2);font-weight:700;letter-spacing:.08em}
+.kpi-sub{font-size:9px;color:var(--text3);margin-top:2px}
+
+/* ---- CHART BARS ---- */
+.chart-wrap{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px}
+.chart-title{font-size:11px;font-weight:700;color:var(--text2);letter-spacing:.08em;margin-bottom:14px}
+.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.bar-label{font-size:11px;color:var(--text2);width:60px;text-align:right;flex-shrink:0}
+.bar-track{flex:1;height:22px;background:var(--bg4);border-radius:4px;overflow:hidden;position:relative}
+.bar-fill{
+  height:100%;border-radius:4px;
+  display:flex;align-items:center;padding-left:8px;
+  font-size:10px;font-weight:700;
+  min-width:8px;transition:width 1s cubic-bezier(.16,1,.3,1);
+}
+.bar-fill.l{background:linear-gradient(90deg,#2a4a8a,var(--blue))}
+.bar-fill.c{background:linear-gradient(90deg,#1a5a3a,var(--green))}
+.bar-fill.r{background:linear-gradient(90deg,#5a2a2a,var(--red))}
+.bar-fill.g{background:linear-gradient(90deg,#3a3010,var(--gold))}
+.bar-fill.p{background:linear-gradient(90deg,#3a2a5a,var(--purple))}
+.bar-fill.gray{background:linear-gradient(90deg,#2a2a3a,#4a4a6a)}
+.bar-pct{font-size:10px;color:var(--text3);width:36px;flex-shrink:0;text-align:right}
+
+/* ---- SCATTER / DIRECTION VIZ ---- */
+.field-wrap{
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:12px;padding:16px;margin-bottom:12px;
+  display:flex;flex-direction:column;align-items:center;
+}
+.field-title{font-size:11px;font-weight:700;color:var(--text2);letter-spacing:.08em;margin-bottom:14px;align-self:flex-start}
+.field-svg{width:100%;max-width:280px}
+
+/* ---- DONUT ---- */
+.donut-wrap{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px}
+.donut-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.donut-svg{width:120px;height:120px;flex-shrink:0}
+.donut-legend{flex:1}
+.donut-item{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.donut-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.donut-item-label{font-size:11px;color:var(--text2)}
+.donut-item-val{font-size:12px;font-weight:700;color:var(--text);margin-left:auto}
+
+/* ---- PLAYER TABLE ---- */
+.player-table-wrap{
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:12px;overflow:hidden;margin-bottom:12px;
+}
+.player-table{width:100%;border-collapse:collapse;font-size:11px}
+.player-table thead th{
+  background:var(--bg4);padding:8px 6px;
+  color:var(--text3);font-weight:700;letter-spacing:.06em;
+  text-align:center;border-bottom:1px solid var(--border);
+  font-size:10px;
+}
+.player-table thead th:first-child{text-align:left;padding-left:12px}
+.player-table tbody tr{border-bottom:1px solid var(--border);transition:background .15s}
+.player-table tbody tr:last-child{border-bottom:none}
+.player-table tbody tr:hover{background:var(--bg4)}
+.player-table td{padding:9px 6px;text-align:center;color:var(--text)}
+.player-table td:first-child{text-align:left;padding-left:12px}
+.player-num{color:var(--accent);font-weight:700;font-size:13px;font-family:'Bebas Neue',sans-serif;letter-spacing:.06em}
+.player-name{font-size:12px;font-weight:700}
+.avg-high{color:var(--gold);font-weight:700}
+.avg-mid{color:var(--green)}
+.avg-low{color:var(--text2)}
+
+/* ---- HIT MATRIX ---- */
+.matrix-wrap{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px}
+.matrix-title{font-size:11px;font-weight:700;color:var(--text2);letter-spacing:.08em;margin-bottom:14px}
+.matrix-grid{display:grid;grid-template-columns:auto 1fr 1fr 1fr;gap:4px}
+.matrix-cell{
+  background:var(--bg4);border-radius:6px;padding:10px 4px;
+  text-align:center;font-size:10px;font-weight:700;
+  position:relative;overflow:hidden;transition:all .3s;
+}
+.matrix-cell.header{background:none;color:var(--text3);font-size:9px;letter-spacing:.08em}
+.matrix-cell.row-header{background:none;color:var(--text3);font-size:9px;display:flex;align-items:center;justify-content:flex-end;padding-right:6px}
+.matrix-cell::before{
+  content:'';position:absolute;inset:0;
+  background:var(--cell-color,transparent);
+  opacity:var(--cell-opacity,0);
+  border-radius:6px;
+}
+.matrix-cell .cell-num{position:relative;z-index:1;font-size:14px;color:var(--text)}
+.matrix-cell .cell-pct{position:relative;z-index:1;font-size:9px;color:var(--text3);display:block}
+
+/* ---- GAME LOG ---- */
+.game-log-wrap{background:var(--bg3);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:12px}
+.game-log-header{
+  background:var(--bg4);padding:10px 14px;
+  display:flex;justify-content:space-between;align-items:center;
+  border-bottom:1px solid var(--border);
+}
+.game-log-title{font-size:11px;font-weight:700;color:var(--text2);letter-spacing:.08em}
+.game-log-date{font-size:10px;color:var(--text3)}
+.game-log-body{padding:10px 14px}
+.at-bat-row{
+  display:flex;align-items:center;gap:8px;
+  padding:5px 0;border-bottom:1px solid var(--border);
+  font-size:11px;
+}
+.at-bat-row:last-child{border-bottom:none}
+.ab-order{color:var(--text3);width:16px;text-align:right;flex-shrink:0;font-size:10px}
+.ab-name{color:var(--text2);width:48px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ab-code{font-family:monospace;color:var(--blue);font-size:12px;width:60px;flex-shrink:0}
+.ab-result{flex:1}
+.result-hit{color:var(--green)}
+.result-out{color:var(--text3)}
+.result-k{color:var(--red)}
+.result-bb{color:var(--purple)}
+
+/* ---- EMPTY STATE ---- */
+.empty{
+  text-align:center;padding:60px 20px;
+  color:var(--text3);
+}
+.empty-icon{font-size:48px;margin-bottom:16px;opacity:.4}
+.empty-title{font-size:16px;font-weight:700;color:var(--text2);margin-bottom:8px}
+.empty-desc{font-size:12px;line-height:1.8}
+.empty-link{
+  display:inline-block;margin-top:20px;
+  padding:10px 24px;border:1px solid var(--border2);
+  border-radius:20px;color:var(--accent);font-size:12px;font-weight:700;
+  text-decoration:none;letter-spacing:.08em;
+}
+
+/* ---- SELECT (player filter) ---- */
+.filter-row{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.filter-btn{
+  padding:6px 14px;border-radius:20px;border:1px solid var(--border);
+  background:var(--bg3);color:var(--text3);font-size:11px;font-weight:700;
+  cursor:pointer;transition:all .15s;letter-spacing:.04em;
+}
+.filter-btn.active{background:rgba(232,184,75,0.12);border-color:var(--accent);color:var(--accent)}
+.filter-btn:hover:not(.active){border-color:var(--border2);color:var(--text2)}
+
+/* ---- TREND LINE (SVG sparkline) ---- */
+.trend-wrap{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px}
+.trend-title{font-size:11px;font-weight:700;color:var(--text2);letter-spacing:.08em;margin-bottom:14px}
+
+/* ---- ANIMATION ---- */
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.panel.active .kpi-card:nth-child(1){animation-delay:.05s}
+.panel.active .kpi-card:nth-child(2){animation-delay:.1s}
+.panel.active .kpi-card:nth-child(3){animation-delay:.15s}
+.panel.active .kpi-card:nth-child(4){animation-delay:.2s}
+
+/* ---- BADGE ---- */
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:9px;font-weight:700;letter-spacing:.06em}
+.badge-hit{background:rgba(62,207,142,0.15);color:var(--green)}
+.badge-out{background:rgba(100,100,120,0.2);color:var(--text3)}
+.badge-k{background:rgba(245,101,101,0.15);color:var(--red)}
+.badge-bb{background:rgba(167,139,250,0.15);color:var(--purple)}
+
+/* ---- LINK TO RECORDER ---- */
+.recorder-link{
+  position:fixed;bottom:20px;right:16px;
+  background:var(--accent);color:#0a0800;
+  padding:10px 18px;border-radius:24px;
+  font-size:12px;font-weight:700;letter-spacing:.06em;
+  text-decoration:none;box-shadow:0 4px 20px rgba(232,184,75,0.4);
+  z-index:200;
+  animation:fadeUp .5s .5s ease both;
+}
+
+/* ---- NO DATA BADGE ---- */
+.no-data{color:var(--text3);font-size:11px;padding:20px;text-align:center}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-brand">
+    <div class="header-title">BATTING STATS</div>
+    <div class="header-sub" id="headerTeam">長束中</div>
+  </div>
+  <div style="text-align:right">
+    <div class="header-team" id="headerOpponent">—</div>
+    <div class="last-updated" id="lastUpdated">データ読み込み中...</div>
+  </div>
+</div>
+
+<div class="tab-bar">
+  <div class="tab active" onclick="switchTab('overview')" id="tab-overview">概要</div>
+  <div class="tab" onclick="switchTab('direction')" id="tab-direction">方向・打球</div>
+  <div class="tab" onclick="switchTab('players')" id="tab-players">選手別</div>
+  <div class="tab" onclick="switchTab('log')" id="tab-log">打席ログ</div>
+</div>
+
+<main>
+
+<!-- ========== OVERVIEW TAB ========== -->
+<div class="panel active" id="panel-overview">
+  <div class="sec-label">チーム打撃</div>
+  <div class="kpi-grid" id="kpiTeam">
+    <div class="kpi-card gold"><div class="kpi-val" id="kpiAvg">.---</div><div class="kpi-label">打率</div><div class="kpi-sub">チーム全体</div></div>
+    <div class="kpi-card blue"><div class="kpi-val" id="kpiOBP">.---</div><div class="kpi-label">出塁率</div><div class="kpi-sub">OBP</div></div>
+    <div class="kpi-card green"><div class="kpi-val" id="kpiH">0</div><div class="kpi-label">安打</div><div class="kpi-sub">Total Hits</div></div>
+    <div class="kpi-card purple"><div class="kpi-val" id="kpiPA">0</div><div class="kpi-label">打席</div><div class="kpi-sub">Plate App.</div></div>
+  </div>
+
+  <div class="kpi-grid" id="kpiTeam2">
+    <div class="kpi-card"><div class="kpi-val" style="color:var(--red)" id="kpiK">0</div><div class="kpi-label" style="color:var(--text2)">三振</div></div>
+    <div class="kpi-card"><div class="kpi-val" style="color:var(--purple)" id="kpiBB">0</div><div class="kpi-label" style="color:var(--text2)">四死球</div></div>
+    <div class="kpi-card"><div class="kpi-val" style="color:var(--gold)" id="kpiRBI">0</div><div class="kpi-label" style="color:var(--text2)">打点</div></div>
+    <div class="kpi-card"><div class="kpi-val" style="color:var(--green)" id="kpiExtra">0</div><div class="kpi-label" style="color:var(--text2)">長打</div></div>
+  </div>
+
+  <div class="sec-label">打球種別</div>
+  <div class="chart-wrap" id="typeChart">
+    <div class="chart-title">G / F / Ld 分布</div>
+    <div id="typeChartBars"><div class="no-data">データなし</div></div>
+  </div>
+
+  <div class="sec-label">三振の内訳</div>
+  <div class="donut-wrap" id="kChart">
+    <div class="chart-title">空振三振 vs 見逃三振</div>
+    <div class="donut-row">
+      <svg class="donut-svg" id="kDonut" viewBox="0 0 120 120"></svg>
+      <div class="donut-legend" id="kLegend"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== DIRECTION TAB ========== -->
+<div class="panel" id="panel-direction">
+  <div class="sec-label">方向別分布</div>
+  <div class="field-wrap">
+    <div class="field-title">打球方向ヒートマップ</div>
+    <svg class="field-svg" viewBox="0 0 280 220" id="fieldSvg">
+      <!-- グラウンド背景 -->
+      <defs>
+        <radialGradient id="fieldGrad" cx="50%" cy="100%" r="80%">
+          <stop offset="0%" stop-color="#0d2518"/>
+          <stop offset="100%" stop-color="#080b12"/>
+        </radialGradient>
+      </defs>
+      <!-- ファール線 -->
+      <line x1="140" y1="210" x2="30" y2="40" stroke="#2a3a5a" stroke-width="1" stroke-dasharray="4,4"/>
+      <line x1="140" y1="210" x2="250" y2="40" stroke="#2a3a5a" stroke-width="1" stroke-dasharray="4,4"/>
+      <!-- 外野フェンス弧 -->
+      <path d="M 30 40 Q 140 -10 250 40" stroke="#2a3a5a" stroke-width="1" stroke-dasharray="4,4" fill="none"/>
+      <!-- 内野ダイヤ -->
+      <rect x="115" y="160" width="50" height="50" fill="none" stroke="#2a3a5a" stroke-width="1" transform="rotate(-45 140 185)"/>
+      <!-- ホームベース -->
+      <circle cx="140" cy="205" r="4" fill="#4a5570"/>
+
+      <!-- 方向ゾーン（クリッカブル） -->
+      <!-- L（レフト） -->
+      <path id="zone-L" d="M 140 210 L 30 40 Q 85 10 140 5 L 140 100 Z" fill="rgba(79,142,247,0.0)" class="field-zone"/>
+      <!-- C（センター） -->
+      <path id="zone-C" d="M 140 210 L 140 5 Q 140 -10 140 5 L 140 100 Z" fill="rgba(62,207,142,0.0)" class="field-zone"/>
+      <!-- R（ライト） -->
+      <path id="zone-R" d="M 140 210 L 250 40 Q 195 10 140 5 L 140 100 Z" fill="rgba(245,101,101,0.0)" class="field-zone"/>
+
+      <!-- ゾーンラベル -->
+      <text x="65" y="100" fill="#4f8ef7" font-size="11" font-weight="bold" text-anchor="middle" font-family="'Noto Sans JP'" opacity="0.8">L</text>
+      <text x="140" y="55" fill="#3ecf8e" font-size="11" font-weight="bold" text-anchor="middle" font-family="'Noto Sans JP'" opacity="0.8">C</text>
+      <text x="215" y="100" fill="#f56565" font-size="11" font-weight="bold" text-anchor="middle" font-family="'Noto Sans JP'" opacity="0.8">R</text>
+
+      <!-- ヒット数テキスト -->
+      <text id="sv-L" x="65" y="116" fill="#4f8ef7" font-size="9" text-anchor="middle" font-family="'Noto Sans JP'">-</text>
+      <text id="sv-C" x="140" y="70" fill="#3ecf8e" font-size="9" text-anchor="middle" font-family="'Noto Sans JP'">-</text>
+      <text id="sv-R" x="215" y="116" fill="#f56565" font-size="9" text-anchor="middle" font-family="'Noto Sans JP'">-</text>
+
+      <!-- 打席数テキスト（小） -->
+      <text id="sv-La" x="65" y="127" fill="#4a5570" font-size="8" text-anchor="middle" font-family="'Noto Sans JP'"></text>
+      <text id="sv-Ca" x="140" y="81" fill="#4a5570" font-size="8" text-anchor="middle" font-family="'Noto Sans JP'"></text>
+      <text id="sv-Ra" x="215" y="127" fill="#4a5570" font-size="8" text-anchor="middle" font-family="'Noto Sans JP'"></text>
+    </svg>
+  </div>
+
+  <div class="sec-label">方向別打率</div>
+  <div class="chart-wrap">
+    <div class="chart-title">L / C / R 打率</div>
+    <div id="dirAvgBars"><div class="no-data">データなし</div></div>
+  </div>
+
+  <div class="sec-label">方向 × 打球種別 マトリックス</div>
+  <div class="matrix-wrap">
+    <div class="matrix-title">打球分布（打席数）</div>
+    <div class="matrix-grid" id="matrixGrid">
+      <div class="no-data" style="grid-column:1/-1">データなし</div>
+    </div>
+  </div>
+
+  <div class="sec-label">引っ張り vs 流し</div>
+  <div class="chart-wrap">
+    <div class="chart-title">傾向分析（右打者想定）</div>
+    <div id="pullOppoBars"><div class="no-data">データなし</div></div>
+  </div>
+</div>
+
+<!-- ========== PLAYERS TAB ========== -->
+<div class="panel" id="panel-players">
+  <div class="sec-label">選手フィルター</div>
+  <div class="filter-row" id="playerFilter"></div>
+
+  <div id="playerDetailWrap">
+    <!-- 選手詳細 or 全体テーブル -->
+  </div>
+</div>
+
+<!-- ========== LOG TAB ========== -->
+<div class="panel" id="panel-log">
+  <div class="sec-label">打席ログ</div>
+  <div id="logWrap">
+    <div class="empty">
+      <div class="empty-icon">📋</div>
+      <div class="empty-title">打席記録なし</div>
+      <div class="empty-desc">baseball_recorder.htmlで<br>試合を記録してください</div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<a href="baseball_recorder.html" class="recorder-link">⚾ 記録へ</a>
+
+<script>
+// ============================================================
+// DATA LOADING
+// ============================================================
+var gameData = null;
+var masterData = [];
+var teamName = '長束中';
+
+function loadData(){
+  try{
+    var ms = localStorage.getItem('baseball_master');
+    if(ms) masterData = JSON.parse(ms);
+    teamName = localStorage.getItem('baseball_teamName') || '長束中';
+    var gs = localStorage.getItem('baseball_game');
+    if(gs) gameData = JSON.parse(gs);
+    document.getElementById('headerTeam').textContent = teamName;
+    if(gameData){
+      var opp = gameData.opponent || '';
+      var date = gameData.gameDate || '';
+      document.getElementById('headerOpponent').textContent = opp ? 'vs ' + opp : '試合データあり';
+      document.getElementById('lastUpdated').textContent = date || '記録中...';
+    } else {
+      document.getElementById('lastUpdated').textContent = 'データなし';
+    }
+  }catch(e){console.error(e);}
+}
+
+// ============================================================
+// CODE PARSER
+// ============================================================
+function parseCode(code){
+  // Returns {dir, type, result, extra, rbi, raw}
+  if(!code) return null;
+  var raw = code;
+  // 走塁系は除外
+  if(/^SB|^PO|^WP|^PB/.test(code)) return null;
+  // 投手記録は除外
+  if(/^[OKBBHBP]/.test(code) && !/^[LCR]/.test(code)) return null;
+
+  var rbi = 0;
+  var extra = false;
+  // 打点: スペース+数字+
+  var rbiM = code.match(/\s+(\d+)\+/);
+  if(rbiM){ rbi = parseInt(rbiM[1]); code = code.replace(rbiM[0],''); }
+  // 長打: 末尾2
+  if(/2$/.test(code.trim())){ extra = true; code = code.replace(/2$/, '').trim(); }
+
+  var dir = null, type = null, result = null;
+
+  // 四球/死球（方向なし）
+  if(code === 'BB' || code === '四球'){ return {dir:null,type:null,result:'BB',extra:false,rbi:rbi,raw:raw}; }
+  if(code === 'HBP' || code === '死球'){ return {dir:null,type:null,result:'HBP',extra:false,rbi:rbi,raw:raw}; }
+  // バント
+  if(code === 'B'){ return {dir:null,type:'B',result:'B',extra:false,rbi:rbi,raw:raw}; }
+  // 空振三振・見逃三振
+  if(code === 'Ks' || code === 'Kl' || code === 'K'){
+    return {dir:null,type:'K',result:code,extra:false,rbi:rbi,raw:raw};
+  }
+
+  // 方向+打球+結果: [L|C|R][G|F|Ld][○|x|Ks|Kl|B|BB|HBP]
+  var m = code.match(/^([LCR])(Ld|G|F)(○|ｘ|x|Ks|Kl|B|BB|HBP)?/);
+  if(!m){
+    // 方向+結果（打球なし）
+    m = code.match(/^([LCR])(F|B|G)?(○|ｘ|x|Ks|Kl)?/);
+  }
+  if(m){
+    dir = m[1];
+    type = m[2] || null;
+    var res = m[3] || null;
+    if(!res){
+      // 残りを結果として
+      var rest = code.slice(m[0].length);
+      if(rest === '○') res = '○';
+      else if(rest === 'ｘ' || rest === 'x') res = 'x';
+      else if(rest === 'Ks') res = 'Ks';
+      else if(rest === 'Kl') res = 'Kl';
+      else if(rest === 'B') res = 'B';
+      else if(rest === 'BB') res = 'BB';
+      else if(rest === 'HBP') res = 'HBP';
+    }
+    result = res;
+  }
+
+  if(!dir && !type && !result) return {dir:null,type:null,result:null,extra:false,rbi:rbi,raw:raw};
+  return {dir:dir, type:type, result:result, extra:extra, rbi:rbi, raw:raw};
+}
+
+function isHit(parsed){
+  if(!parsed) return false;
+  return parsed.result === '○' || parsed.result === 'BB' || parsed.result === 'HBP' || parsed.result === 'B';
+}
+function isOut(parsed){
+  if(!parsed) return false;
+  return parsed.result === 'x' || parsed.result === 'ｘ' || parsed.result === 'Ks' || parsed.result === 'Kl';
+}
+function isK(parsed){
+  if(!parsed) return false;
+  return parsed.result === 'Ks' || parsed.result === 'Kl';
+}
+function isBB(parsed){
+  if(!parsed) return false;
+  return parsed.result === 'BB' || parsed.result === 'HBP';
+}
+function isOnBase(parsed){
+  if(!parsed) return false;
+  return parsed.result === '○' || parsed.result === 'B' || isBB(parsed);
+}
+
+function getPlayerResults(num){
+  if(!gameData || !gameData.batData) return [];
+  var bd = gameData.batData[num];
+  if(!bd || !bd.results) return [];
+  return bd.results;
+}
+
+function getAllResults(){
+  if(!gameData || !gameData.batData) return [];
+  var all = [];
+  Object.keys(gameData.batData).forEach(function(num){
+    var bd = gameData.batData[num];
+    if(bd && bd.results){
+      bd.results.forEach(function(r){
+        all.push({num:num, code:r});
+      });
+    }
+  });
+  return all;
+}
+
+function getMasterName(num){
+  var p = masterData.find(function(x){return x.num===num;});
+  return p ? p.name : '#'+num;
+}
+
+// ============================================================
+// OVERVIEW TAB
+// ============================================================
+function renderOverview(){
+  if(!gameData || !gameData.batData){
+    return;
+  }
+  var all = getAllResults();
+  var parsed = all.map(function(r){ return {num:r.num, p:parseCode(r.code)}; }).filter(function(x){return x.p;});
+
+  var pa = parsed.length;
+  var hits = parsed.filter(function(x){return isHit(x.p) && !isBB(x.p) && x.p.result !== 'B';}).length;
+  var obCount = parsed.filter(function(x){return isOnBase(x.p);}).length;
+  var bb = parsed.filter(function(x){return isBB(x.p);}).length;
+  var ks = parsed.filter(function(x){return x.p.result==='Ks';}).length;
+  var kl = parsed.filter(function(x){return x.p.result==='Kl';}).length;
+  var k = ks + kl;
+  var extra = parsed.filter(function(x){return x.p.extra;}).length;
+
+  // AB = PA - BB - HBP - B（バント）
+  var ab = parsed.filter(function(x){
+    return !isBB(x.p) && x.p.result !== 'B';
+  }).length;
+  var avg = ab > 0 ? (hits/ab) : 0;
+  var obp = pa > 0 ? (obCount/pa) : 0;
+
+  // RBI
+  var totalRbi = 0;
+  Object.keys(gameData.batData).forEach(function(num){
+    var bd = gameData.batData[num];
+    if(bd && bd.rbi) totalRbi += parseInt(bd.rbi)||0;
+  });
+
+  document.getElementById('kpiAvg').textContent = ab>0 ? fmtAvg(avg) : '.---';
+  document.getElementById('kpiOBP').textContent = pa>0 ? fmtAvg(obp) : '.---';
+  document.getElementById('kpiH').textContent = hits;
+  document.getElementById('kpiPA').textContent = pa;
+  document.getElementById('kpiK').textContent = k;
+  document.getElementById('kpiBB').textContent = bb;
+  document.getElementById('kpiRBI').textContent = totalRbi;
+  document.getElementById('kpiExtra').textContent = extra;
+
+  // 打球種別バー
+  var gCount = parsed.filter(function(x){return x.p.type==='G';}).length;
+  var fCount = parsed.filter(function(x){return x.p.type==='F';}).length;
+  var ldCount = parsed.filter(function(x){return x.p.type==='Ld';}).length;
+  var typeTotal = gCount+fCount+ldCount;
+  var tbEl = document.getElementById('typeChartBars');
+  if(typeTotal>0){
+    tbEl.innerHTML =
+      makeBar('ゴロ (G)', gCount, typeTotal, 'g') +
+      makeBar('フライ (F)', fCount, typeTotal, 'gray') +
+      makeBar('ライナー (Ld)', ldCount, typeTotal, 'blue');
+  } else {
+    tbEl.innerHTML = '<div class="no-data">打球データなし</div>';
+  }
+
+  // 三振ドーナツ
+  renderDonut('kDonut', 'kLegend',
+    [{label:'空振三振 Ks', val:ks, color:'#f56565'},{label:'見逃三振 Kl', val:kl, color:'#f6ad55'}]
+  );
+}
+
+function fmtAvg(v){ return '.'+Math.round(v*1000).toString().padStart(3,'0'); }
+
+function makeBar(label, count, total, cls){
+  var pct = total>0 ? Math.round(count/total*100) : 0;
+  return '<div class="bar-row">'
+    +'<div class="bar-label">'+label+'</div>'
+    +'<div class="bar-track"><div class="bar-fill '+cls+'" style="width:'+pct+'%">'
+    +(pct>12?'<span style="color:rgba(255,255,255,0.7)">'+count+'</span>':'')
+    +'</div></div>'
+    +'<div class="bar-pct">'+pct+'%</div>'
+    +'</div>';
+}
+
+function renderDonut(svgId, legendId, items){
+  var total = items.reduce(function(s,i){return s+i.val;},0);
+  var el = document.getElementById(svgId);
+  var leg = document.getElementById(legendId);
+  if(total===0){
+    el.innerHTML = '<circle cx="60" cy="60" r="40" fill="none" stroke="#1e2a45" stroke-width="16"/><text x="60" y="65" text-anchor="middle" fill="#4a5570" font-size="11" font-family="Noto Sans JP">データなし</text>';
+    leg.innerHTML = '';
+    return;
+  }
+  var r=40, cx=60, cy=60, strokeW=16;
+  var circumference = 2*Math.PI*r;
+  var offset = 0;
+  var svgHTML = '<circle cx="60" cy="60" r="40" fill="none" stroke="#1e2a45" stroke-width="16"/>';
+  var legHTML = '';
+  items.forEach(function(item){
+    var frac = total>0 ? item.val/total : 0;
+    var dash = frac*circumference;
+    var gap = circumference - dash;
+    svgHTML += '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="'+item.color+'"'
+      +' stroke-width="'+strokeW+'" stroke-dasharray="'+dash+' '+gap+'"'
+      +' stroke-dashoffset="'+(-(offset*circumference))+'"'
+      +' transform="rotate(-90 '+cx+' '+cy+')" opacity="0.9"/>';
+    offset += frac;
+    legHTML += '<div class="donut-item">'
+      +'<div class="donut-dot" style="background:'+item.color+'"></div>'
+      +'<div class="donut-item-label">'+item.label+'</div>'
+      +'<div class="donut-item-val">'+item.val+'</div>'
+      +'</div>';
+  });
+  el.innerHTML = svgHTML;
+  leg.innerHTML = legHTML;
+}
+
+// ============================================================
+// DIRECTION TAB
+// ============================================================
+function renderDirection(){
+  if(!gameData || !gameData.batData){ return; }
+  var all = getAllResults();
+  var parsed = all.map(function(r){ return parseCode(r.code); }).filter(Boolean);
+
+  // 方向別カウント
+  var dirs = {L:{pa:0,h:0,g:0,f:0,ld:0}, C:{pa:0,h:0,g:0,f:0,ld:0}, R:{pa:0,h:0,g:0,f:0,ld:0}};
+  parsed.forEach(function(p){
+    if(!p.dir) return;
+    var d = dirs[p.dir];
+    if(!d) return;
+    d.pa++;
+    if(p.result==='○') d.h++;
+    if(p.type==='G') d.g++;
+    if(p.type==='F') d.f++;
+    if(p.type==='Ld') d.ld++;
+  });
+
+  // SVGヒートマップ
+  var maxPA = Math.max(dirs.L.pa, dirs.C.pa, dirs.R.pa, 1);
+  ['L','C','R'].forEach(function(d){
+    var opEl = document.getElementById('zone-'+d);
+    var alpha = dirs[d].pa/maxPA*0.35;
+    var colors = {L:'rgba(79,142,247,', C:'rgba(62,207,142,', R:'rgba(245,101,101,'};
+    if(opEl) opEl.setAttribute('fill', colors[d]+alpha+')');
+    var sv = document.getElementById('sv-'+d);
+    if(sv) sv.textContent = dirs[d].h+'安打 / '+dirs[d].pa+'打席';
+    var sva = document.getElementById('sv-'+d+'a');
+    if(sva){
+      var avg = dirs[d].pa>0 ? fmtAvg(dirs[d].h/dirs[d].pa) : '.---';
+      sva.textContent = avg;
+    }
+  });
+
+  // 方向別打率バー
+  var dab = document.getElementById('dirAvgBars');
+  var dirTotal = dirs.L.pa + dirs.C.pa + dirs.R.pa;
+  if(dirTotal>0){
+    var maxAvg = Math.max(
+      dirs.L.pa>0?dirs.L.h/dirs.L.pa:0,
+      dirs.C.pa>0?dirs.C.h/dirs.C.pa:0,
+      dirs.R.pa>0?dirs.R.h/dirs.R.pa:0,
+      0.001
+    );
+    function dirBar(label,d,cls){
+      var avg = d.pa>0?d.h/d.pa:0;
+      var pct = Math.round(avg/maxAvg*100);
+      return '<div class="bar-row">'
+        +'<div class="bar-label">'+label+'('+d.pa+')</div>'
+        +'<div class="bar-track"><div class="bar-fill '+cls+'" style="width:'+pct+'%">'
+        +(pct>15?'<span style="color:rgba(255,255,255,0.8)">'+fmtAvg(avg)+'</span>':'')
+        +'</div></div>'
+        +'<div class="bar-pct">'+fmtAvg(avg)+'</div>'
+        +'</div>';
+    }
+    dab.innerHTML = dirBar('レフト L',dirs.L,'l') + dirBar('センター C',dirs.C,'c') + dirBar('ライト R',dirs.R,'r');
+  } else {
+    dab.innerHTML = '<div class="no-data">データなし</div>';
+  }
+
+  // マトリックス
+  var mg = document.getElementById('matrixGrid');
+  var types = ['G','F','Ld'];
+  var typeLabels = {G:'ゴロ',F:'フライ',Ld:'ライナー'};
+  var dirColors = {L:'rgba(79,142,247,', C:'rgba(62,207,142,', R:'rgba(245,101,101,'};
+  var total = parsed.filter(function(p){return p.dir&&p.type;}).length||1;
+
+  var html = '<div class="matrix-cell header"></div>'
+    +'<div class="matrix-cell header">ゴロ G</div>'
+    +'<div class="matrix-cell header">フライ F</div>'
+    +'<div class="matrix-cell header">ライナー Ld</div>';
+  var dirList = [{key:'L',label:'レフト'},{key:'C',label:'センター'},{key:'R',label:'ライト'}];
+  dirList.forEach(function(dobj){
+    html += '<div class="matrix-cell row-header">'+dobj.label+'</div>';
+    types.forEach(function(t){
+      var count = parsed.filter(function(p){return p.dir===dobj.key&&p.type===t;}).length;
+      var pct = Math.round(count/total*100);
+      var alpha = Math.min(pct/30, 1)*0.5;
+      html += '<div class="matrix-cell" style="--cell-color:'+dirColors[dobj.key]+alpha+');--cell-opacity:1">'
+        +'<div class="cell-num">'+count+'</div>'
+        +'<span class="cell-pct">'+pct+'%</span>'
+        +'</div>';
+    });
+  });
+  mg.innerHTML = html;
+
+  // 引っ張り vs 流し（右打者: L=引っ張り, R=流し）
+  var pullEl = document.getElementById('pullOppoBars');
+  var pullTotal = dirs.L.pa + dirs.C.pa + dirs.R.pa;
+  if(pullTotal>0){
+    pullEl.innerHTML =
+      makeBar('引っ張り (L)', dirs.L.pa, pullTotal, 'l') +
+      makeBar('センター (C)', dirs.C.pa, pullTotal, 'c') +
+      makeBar('流し (R)', dirs.R.pa, pullTotal, 'r');
+  } else {
+    pullEl.innerHTML = '<div class="no-data">データなし</div>';
+  }
+}
+
+// ============================================================
+// PLAYERS TAB
+// ============================================================
+var selectedPlayer = 'all';
+
+function renderPlayers(){
+  if(!gameData || !gameData.batData){
+    document.getElementById('playerDetailWrap').innerHTML = '<div class="empty"><div class="empty-icon">👤</div><div class="empty-title">データなし</div></div>';
+    return;
+  }
+  // フィルターボタン
+  var filterEl = document.getElementById('playerFilter');
+  var players = Object.keys(gameData.batData).filter(function(num){
+    var bd = gameData.batData[num];
+    return bd && bd.results && bd.results.length>0;
+  });
+  var html = '<div class="filter-btn'+(selectedPlayer==='all'?' active':'')+'" onclick="selectPlayer(\'all\')">全体</div>';
+  players.forEach(function(num){
+    html += '<div class="filter-btn'+(selectedPlayer===num?' active':'')+'" onclick="selectPlayer(\''+num+'\')">#'+num+' '+getMasterName(num)+'</div>';
+  });
+  filterEl.innerHTML = html;
+  renderPlayerDetail(selectedPlayer, players);
+}
+
+function selectPlayer(num){
+  selectedPlayer = num;
+  renderPlayers();
+}
+
+function renderPlayerDetail(sel, players){
+  var wrap = document.getElementById('playerDetailWrap');
+  if(sel === 'all'){
+    // 全体テーブル
+    var rows = '';
+    players.forEach(function(num,i){
+      var bd = gameData.batData[num];
+      if(!bd || !bd.results) return;
+      var res = bd.results.map(parseCode).filter(Boolean);
+      var pa = res.length;
+      var bb = res.filter(function(p){return isBB(p);}).length;
+      var bunt = res.filter(function(p){return p.result==='B';}).length;
+      var ab = pa - bb - bunt;
+      var h = res.filter(function(p){return p.result==='○';}).length;
+      var k = res.filter(function(p){return isK(p);}).length;
+      var avg = ab>0 ? h/ab : 0;
+      var extra = res.filter(function(p){return p.extra;}).length;
+      var gRate = res.filter(function(p){return p.type==='G';}).length;
+      var ldRate = res.filter(function(p){return p.type==='Ld';}).length;
+      var avgCls = avg>=0.4?'avg-high':avg>=0.25?'avg-mid':'avg-low';
+      var orderLabel = bd.order ? (typeof bd.order==='number'?bd.order+'番':bd.order) : '-';
+      rows += '<tr style="animation:fadeUp .3s '+(i*0.05)+'s ease both">'
+        +'<td><span class="player-num">#'+num+'</span> <span class="player-name">'+getMasterName(num)+'</span><br><span style="font-size:9px;color:var(--text3)">'+orderLabel+'</span></td>'
+        +'<td>'+pa+'</td>'
+        +'<td>'+ab+'</td>'
+        +'<td class="'+avgCls+'">'+(ab>0?fmtAvg(avg):'.-')+'</td>'
+        +'<td>'+h+'</td>'
+        +'<td>'+k+'</td>'
+        +'<td>'+bb+'</td>'
+        +'<td>'+extra+'</td>'
+        +'<td>'+gRate+'</td>'
+        +'<td>'+ldRate+'</td>'
+        +'</tr>';
+    });
+    wrap.innerHTML = '<div class="player-table-wrap"><table class="player-table">'
+      +'<thead><tr><th>選手</th><th>PA</th><th>AB</th><th>AVG</th><th>H</th><th>K</th><th>BB</th><th>長打</th><th>G</th><th>Ld</th></tr></thead>'
+      +'<tbody>'+rows+'</tbody></table></div>';
+  } else {
+    // 個人詳細
+    var bd = gameData.batData[sel];
+    if(!bd || !bd.results || bd.results.length===0){
+      wrap.innerHTML = '<div class="no-data">打席データなし</div>';
+      return;
+    }
+    var res = bd.results.map(function(r){return {code:r, p:parseCode(r)};}).filter(function(x){return x.p;});
+    var pa = res.length;
+    var bbList = res.filter(function(x){return isBB(x.p);});
+    var buntList = res.filter(function(x){return x.p.result==='B';});
+    var ab = pa - bbList.length - buntList.length;
+    var hList = res.filter(function(x){return x.p.result==='○';});
+    var kList = res.filter(function(x){return isK(x.p);});
+    var avg = ab>0 ? hList.length/ab : 0;
+    var obCount = res.filter(function(x){return isOnBase(x.p);}).length;
+    var obp = pa>0 ? obCount/pa : 0;
+    var extraList = res.filter(function(x){return x.p.extra;});
+
+    // KPIカード
+    var kpiHtml = '<div class="kpi-grid" style="margin-bottom:16px">'
+      +'<div class="kpi-card gold"><div class="kpi-val">'+fmtAvg(avg)+'</div><div class="kpi-label">打率</div></div>'
+      +'<div class="kpi-card blue"><div class="kpi-val">'+fmtAvg(obp)+'</div><div class="kpi-label">出塁率</div></div>'
+      +'<div class="kpi-card green"><div class="kpi-val">'+hList.length+'</div><div class="kpi-label">安打</div></div>'
+      +'<div class="kpi-card purple"><div class="kpi-val">'+pa+'</div><div class="kpi-label">打席</div></div>'
+      +'</div>';
+
+    // 打球種別ドーナツ
+    var gC = res.filter(function(x){return x.p.type==='G';}).length;
+    var fC = res.filter(function(x){return x.p.type==='F';}).length;
+    var ldC = res.filter(function(x){return x.p.type==='Ld';}).length;
+
+    // 方向バー
+    var lC = res.filter(function(x){return x.p.dir==='L';}).length;
+    var cC = res.filter(function(x){return x.p.dir==='C';}).length;
+    var rC = res.filter(function(x){return x.p.dir==='R';}).length;
+    var dirTot = lC+cC+rC||1;
+
+    var dirBarHtml = '<div class="chart-wrap"><div class="chart-title">打球方向</div>'
+      +makeBar('L',lC,dirTot,'l')+makeBar('C',cC,dirTot,'c')+makeBar('R',rC,dirTot,'r')+'</div>';
+
+    var typeTot = gC+fC+ldC||1;
+    var typeBarHtml = '<div class="chart-wrap"><div class="chart-title">打球種別</div>'
+      +makeBar('ゴロ G',gC,typeTot,'g')+makeBar('フライ F',fC,typeTot,'gray')+makeBar('ライナー Ld',ldC,typeTot,'blue')+'</div>';
+
+    // 打席ログ
+    var logHtml = '<div class="game-log-wrap"><div class="game-log-header"><div class="game-log-title">打席記録</div></div><div class="game-log-body">';
+    res.forEach(function(r,i){
+      var p = r.p;
+      var resLabel='', resCls='';
+      if(p.result==='○'){resLabel='安打';resCls='result-hit';}
+      else if(p.result==='Ks'){resLabel='空振K';resCls='result-k';}
+      else if(p.result==='Kl'){resLabel='見逃K';resCls='result-k';}
+      else if(p.result==='BB'){resLabel='四球';resCls='result-bb';}
+      else if(p.result==='HBP'){resLabel='死球';resCls='result-bb';}
+      else if(p.result==='B'){resLabel='バント';resCls='result-hit';}
+      else if(isOut(p)){resLabel='アウト';resCls='result-out';}
+      var dir = p.dir ? {L:'L レフト',C:'C センター',R:'R ライト'}[p.dir]||p.dir : '';
+      var type = p.type ? {G:'ゴロ',F:'フライ',Ld:'ライナー'}[p.type]||p.type : '';
+      var extras = [];
+      if(p.extra) extras.push('長打');
+      if(p.rbi>0) extras.push(p.rbi+'打点');
+      logHtml += '<div class="at-bat-row">'
+        +'<div class="ab-order">'+(i+1)+'</div>'
+        +'<div class="ab-code">'+r.code+'</div>'
+        +'<div class="ab-result"><span class="'+resCls+'">'+resLabel+'</span>'
+        +(dir?' <span style="color:var(--text3);font-size:10px">'+dir+'</span>':'')
+        +(type?' <span style="color:var(--text3);font-size:10px">'+type+'</span>':'')
+        +(extras.length?' <span style="color:var(--gold);font-size:10px">'+extras.join(' ')+'</span>':'')
+        +'</div></div>';
+    });
+    logHtml += '</div></div>';
+
+    wrap.innerHTML = kpiHtml + dirBarHtml + typeBarHtml + logHtml;
+  }
+}
+
+// ============================================================
+// LOG TAB
+// ============================================================
+function renderLog(){
+  var wrap = document.getElementById('logWrap');
+  if(!gameData || !gameData.batData){
+    wrap.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div class="empty-title">データなし</div><div class="empty-desc">baseball_recorder.htmlで記録してください</div><a href="baseball_recorder.html" class="empty-link">⚾ 記録アプリへ</a></div>';
+    return;
+  }
+  var all = getAllResults();
+  if(all.length===0){
+    wrap.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div class="empty-title">打席記録なし</div><div class="empty-desc">試合を記録するとここに表示されます</div></div>';
+    return;
+  }
+  // 打席ログ（選手ごとにまとめて表示）
+  var players = Object.keys(gameData.batData).filter(function(num){
+    var bd = gameData.batData[num];
+    return bd && bd.results && bd.results.length>0;
+  });
+  var html = '';
+  players.forEach(function(num){
+    var bd = gameData.batData[num];
+    var orderLabel = bd.order ? (typeof bd.order==='number'?bd.order+'番打者':bd.order) : '';
+    html += '<div class="game-log-wrap" style="margin-bottom:10px">'
+      +'<div class="game-log-header">'
+      +'<div class="game-log-title"><span class="player-num">#'+num+'</span> '+getMasterName(num)+'</div>'
+      +'<div class="game-log-date">'+orderLabel+'</div>'
+      +'</div><div class="game-log-body">';
+    bd.results.forEach(function(code,i){
+      var p = parseCode(code);
+      var badge='', badgeCls='';
+      if(!p){ html += '<div class="at-bat-row"><div class="ab-order">'+(i+1)+'</div><div class="ab-code">'+code+'</div><div class="ab-result" style="color:var(--text3)">—</div></div>'; return; }
+      if(p.result==='○'){badge='安打';badgeCls='badge-hit';}
+      else if(isK(p)){badge=p.result==='Ks'?'空振K':'見逃K';badgeCls='badge-k';}
+      else if(isBB(p)){badge=p.result==='BB'?'四球':'死球';badgeCls='badge-bb';}
+      else if(p.result==='B'){badge='バント';badgeCls='badge-hit';}
+      else if(isOut(p)){badge='アウト';badgeCls='badge-out';}
+      html += '<div class="at-bat-row">'
+        +'<div class="ab-order">'+(i+1)+'</div>'
+        +'<div class="ab-code">'+code+'</div>'
+        +'<div class="ab-result">'+(badge?'<span class="badge '+badgeCls+'">'+badge+'</span>':'')
+        +(p.rbi>0?' <span style="color:var(--gold);font-size:10px">'+p.rbi+'打点</span>':'')
+        +(p.extra?' <span style="color:var(--purple);font-size:10px">長打</span>':'')
+        +'</div></div>';
+    });
+    html += '</div></div>';
+  });
+  wrap.innerHTML = html;
+}
+
+// ============================================================
+// TAB SWITCHING
+// ============================================================
+var panels = ['overview','direction','players','log'];
+function switchTab(name){
+  panels.forEach(function(n){
+    document.getElementById('panel-'+n).className = 'panel'+(n===name?' active':'');
+    document.getElementById('tab-'+n).className = 'tab'+(n===name?' active':'');
+  });
+  window.scrollTo(0,0);
+  if(name==='overview') renderOverview();
+  if(name==='direction') renderDirection();
+  if(name==='players') renderPlayers();
+  if(name==='log') renderLog();
+}
+
+// ============================================================
+// INIT
+// ============================================================
+loadData();
+renderOverview();
+
+// 定期更新（30秒ごと）
+setInterval(function(){
+  loadData();
+  var activePanel = panels.find(function(n){return document.getElementById('panel-'+n).className.includes('active');});
+  if(activePanel==='overview') renderOverview();
+  if(activePanel==='direction') renderDirection();
+  if(activePanel==='players') renderPlayers();
+  if(activePanel==='log') renderLog();
+}, 30000);
+</script>
+</body>
+</html>
