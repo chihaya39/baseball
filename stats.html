@@ -499,6 +499,8 @@ function parseCode(code){
 
   var dir = null, type = null, result = null;
 
+  // ○単体 → 四球・死球等の出塁（安打ではない）
+  if(code === '○'){ return {dir:null,type:null,result:'OB',extra:false,rbi:rbi,raw:raw}; }
   // 四球/死球（方向なし）
   if(code === 'BB' || code === '四球'){ return {dir:null,type:null,result:'BB',extra:false,rbi:rbi,raw:raw}; }
   if(code === 'HBP' || code === '死球'){ return {dir:null,type:null,result:'HBP',extra:false,rbi:rbi,raw:raw}; }
@@ -538,8 +540,9 @@ function parseCode(code){
 }
 
 function isHit(parsed){
+  // 安打 = 方向+打球ありの○のみ（○単体=四球等、BB/HBP/Bは非安打）
   if(!parsed) return false;
-  return parsed.result === '○' || parsed.result === 'BB' || parsed.result === 'HBP' || parsed.result === 'B';
+  return parsed.result === '○' && parsed.dir !== null;
 }
 function isOut(parsed){
   if(!parsed) return false;
@@ -554,8 +557,9 @@ function isBB(parsed){
   return parsed.result === 'BB' || parsed.result === 'HBP';
 }
 function isOnBase(parsed){
+  // 出塁 = 安打(方向あり○) + ○単体(四球等) + BB + HBP + バント成功
   if(!parsed) return false;
-  return parsed.result === '○' || parsed.result === 'B' || isBB(parsed);
+  return (parsed.result === '○') || parsed.result === 'OB' || parsed.result === 'B' || isBB(parsed);
 }
 
 function getPlayerResults(num){
