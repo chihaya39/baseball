@@ -359,7 +359,13 @@ main{position:relative;z-index:1;padding:16px;padding-bottom:40px}
 <div class="panel" id="panel-direction">
   <div class="sec-label">方向別分布</div>
   <div class="field-wrap">
-    <div class="field-title">打球方向ヒートマップ</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;width:100%;margin-bottom:14px">
+      <div class="field-title" id="heatmapTitle">打球方向ヒートマップ</div>
+      <div style="display:flex;gap:4px">
+        <div id="heatBtn-pa" onclick="setHeatMode('pa')" style="padding:5px 12px;border-radius:16px;font-size:10px;font-weight:700;cursor:pointer;border:1px solid var(--accent);background:rgba(232,184,75,0.15);color:var(--accent);letter-spacing:.06em">打席分布</div>
+        <div id="heatBtn-avg" onclick="setHeatMode('avg')" style="padding:5px 12px;border-radius:16px;font-size:10px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--text3);letter-spacing:.06em">打率</div>
+      </div>
+    </div>
     <svg class="field-svg" viewBox="0 0 280 220" id="fieldSvg">
       <!-- グラウンド背景 -->
       <defs>
@@ -378,28 +384,28 @@ main{position:relative;z-index:1;padding:16px;padding-bottom:40px}
       <!-- ホームベース -->
       <circle cx="140" cy="205" r="4" fill="#4a5570"/>
 
-      <!-- 方向ゾーン（クリッカブル） -->
-      <!-- L（レフト） -->
-      <path id="zone-L" d="M 140 210 L 30 40 Q 85 10 140 5 L 140 100 Z" fill="rgba(79,142,247,0.0)" class="field-zone"/>
-      <!-- C（センター） -->
-      <path id="zone-C" d="M 140 210 L 140 5 Q 140 -10 140 5 L 140 100 Z" fill="rgba(62,207,142,0.0)" class="field-zone"/>
-      <!-- R（ライト） -->
-      <path id="zone-R" d="M 140 210 L 250 40 Q 195 10 140 5 L 140 100 Z" fill="rgba(245,101,101,0.0)" class="field-zone"/>
+      <!-- 方向ゾーン 3等分 -->
+      <!-- L（レフト）: ホームから左ファール線～左中間 -->
+      <path id="zone-L" d="M 140 210 L 30 40 Q 65 5 110 2 L 140 210 Z" fill="rgba(79,142,247,0.0)" class="field-zone"/>
+      <!-- C（センター）: 左中間～右中間 -->
+      <path id="zone-C" d="M 140 210 L 110 2 Q 140 -8 170 2 L 140 210 Z" fill="rgba(62,207,142,0.0)" class="field-zone"/>
+      <!-- R（ライト）: 右中間～右ファール線 -->
+      <path id="zone-R" d="M 140 210 L 170 2 Q 215 5 250 40 L 140 210 Z" fill="rgba(245,101,101,0.0)" class="field-zone"/>
 
       <!-- ゾーンラベル -->
-      <text x="65" y="100" fill="#4f8ef7" font-size="11" font-weight="bold" text-anchor="middle" font-family="'Noto Sans JP'" opacity="0.8">L</text>
-      <text x="140" y="55" fill="#3ecf8e" font-size="11" font-weight="bold" text-anchor="middle" font-family="'Noto Sans JP'" opacity="0.8">C</text>
-      <text x="215" y="100" fill="#f56565" font-size="11" font-weight="bold" text-anchor="middle" font-family="'Noto Sans JP'" opacity="0.8">R</text>
+      <text x="75" y="95" fill="#4f8ef7" font-size="11" font-weight="bold" text-anchor="middle" font-family="'Noto Sans JP'" opacity="0.9">L</text>
+      <text x="140" y="60" fill="#3ecf8e" font-size="11" font-weight="bold" text-anchor="middle" font-family="'Noto Sans JP'" opacity="0.9">C</text>
+      <text x="205" y="95" fill="#f56565" font-size="11" font-weight="bold" text-anchor="middle" font-family="'Noto Sans JP'" opacity="0.9">R</text>
 
-      <!-- ヒット数テキスト -->
-      <text id="sv-L" x="65" y="116" fill="#4f8ef7" font-size="9" text-anchor="middle" font-family="'Noto Sans JP'">-</text>
-      <text id="sv-C" x="140" y="70" fill="#3ecf8e" font-size="9" text-anchor="middle" font-family="'Noto Sans JP'">-</text>
-      <text id="sv-R" x="215" y="116" fill="#f56565" font-size="9" text-anchor="middle" font-family="'Noto Sans JP'">-</text>
+      <!-- メインテキスト -->
+      <text id="sv-L" x="75" y="112" fill="#4f8ef7" font-size="9" text-anchor="middle" font-family="'Noto Sans JP'">-</text>
+      <text id="sv-C" x="140" y="77" fill="#3ecf8e" font-size="9" text-anchor="middle" font-family="'Noto Sans JP'">-</text>
+      <text id="sv-R" x="205" y="112" fill="#f56565" font-size="9" text-anchor="middle" font-family="'Noto Sans JP'">-</text>
 
-      <!-- 打席数テキスト（小） -->
-      <text id="sv-La" x="65" y="127" fill="#4a5570" font-size="8" text-anchor="middle" font-family="'Noto Sans JP'"></text>
-      <text id="sv-Ca" x="140" y="81" fill="#4a5570" font-size="8" text-anchor="middle" font-family="'Noto Sans JP'"></text>
-      <text id="sv-Ra" x="215" y="127" fill="#4a5570" font-size="8" text-anchor="middle" font-family="'Noto Sans JP'"></text>
+      <!-- サブテキスト -->
+      <text id="sv-La" x="75" y="124" fill="#8b98b8" font-size="8" text-anchor="middle" font-family="'Noto Sans JP'"></text>
+      <text id="sv-Ca" x="140" y="89" fill="#8b98b8" font-size="8" text-anchor="middle" font-family="'Noto Sans JP'"></text>
+      <text id="sv-Ra" x="205" y="124" fill="#8b98b8" font-size="8" text-anchor="middle" font-family="'Noto Sans JP'"></text>
     </svg>
   </div>
 
@@ -486,8 +492,8 @@ function parseCode(code){
   var raw = code;
   // 走塁系は除外
   if(/^SB|^PO|^WP|^PB/.test(code)) return null;
-  // 投手記録は除外
-  if(/^[OKBBHBP]/.test(code) && !/^[LCR]/.test(code)) return null;
+  // 投手専用コードのみ除外（O=奪アウト, K単体=奪三振, H=被安打, R=失点）
+  if(/^O$|^H$|^R$/.test(code)) return null;
 
   var rbi = 0;
   var extra = false;
@@ -499,8 +505,8 @@ function parseCode(code){
 
   var dir = null, type = null, result = null;
 
-  // ○単体 → 四球・死球等の出塁（安打ではない）
-  if(code === '○'){ return {dir:null,type:null,result:'OB',extra:false,rbi:rbi,raw:raw}; }
+  // ○単体 → 四死球（出塁、安打ではない）
+  if(code === '○'){ return {dir:null,type:null,result:'BB',extra:false,rbi:rbi,raw:raw}; }
   // 四球/死球（方向なし）
   if(code === 'BB' || code === '四球'){ return {dir:null,type:null,result:'BB',extra:false,rbi:rbi,raw:raw}; }
   if(code === 'HBP' || code === '死球'){ return {dir:null,type:null,result:'HBP',extra:false,rbi:rbi,raw:raw}; }
@@ -622,11 +628,16 @@ function renderOverview(){
   var avg = ab > 0 ? (hits/ab) : 0;
   var obp = pa > 0 ? (obCount/pa) : 0;
 
-  // RBI
+  // RBI（resultsコードから集計）
   var totalRbi = 0;
-  Object.keys(gameData.batData).forEach(function(num){
-    var bd = gameData.batData[num];
-    if(bd && bd.rbi) totalRbi += parseInt(bd.rbi)||0;
+  Object.keys(gameData.batData).forEach(function(key){
+    var bd = gameData.batData[key];
+    if(bd && bd.results){
+      bd.results.forEach(function(r){
+        var p = parseCode(r);
+        if(p && p.rbi) totalRbi += p.rbi;
+      });
+    }
   });
 
   document.getElementById('kpiAvg').textContent = ab>0 ? fmtAvg(avg) : '.---';
@@ -648,7 +659,7 @@ function renderOverview(){
     tbEl.innerHTML =
       makeBar('ゴロ (G)', gCount, typeTotal, 'g') +
       makeBar('フライ (F)', fCount, typeTotal, 'gray') +
-      makeBar('ライナー (Ld)', ldCount, typeTotal, 'blue');
+      makeBar('ライナー (Ld)', ldCount, typeTotal, 'p');
   } else {
     tbEl.innerHTML = '<div class="no-data">打球データなし</div>';
   }
@@ -660,6 +671,68 @@ function renderOverview(){
 }
 
 function fmtAvg(v){ return '.'+Math.round(v*1000).toString().padStart(3,'0'); }
+var _heatMode = 'pa';
+
+function setHeatMode(mode){
+  _heatMode = mode;
+  window._heatMode = mode;
+  // ボタンのスタイル更新
+  var btnPa = document.getElementById('heatBtn-pa');
+  var btnAvg = document.getElementById('heatBtn-avg');
+  if(btnPa && btnAvg){
+    if(mode === 'pa'){
+      btnPa.style.background = 'rgba(232,184,75,0.15)'; btnPa.style.borderColor = 'var(--accent)'; btnPa.style.color = 'var(--accent)';
+      btnAvg.style.background = 'var(--bg3)'; btnAvg.style.borderColor = 'var(--border)'; btnAvg.style.color = 'var(--text3)';
+    } else {
+      btnAvg.style.background = 'rgba(62,207,142,0.15)'; btnAvg.style.borderColor = 'var(--green)'; btnAvg.style.color = 'var(--green)';
+      btnPa.style.background = 'var(--bg3)'; btnPa.style.borderColor = 'var(--border)'; btnPa.style.color = 'var(--text3)';
+    }
+  }
+  if(window._dirsCache) renderHeatmap(mode);
+}
+
+function renderHeatmap(mode){
+  var dirs = window._dirsCache;
+  if(!dirs) return;
+  var colors = {L:'rgba(79,142,247,', C:'rgba(62,207,142,', R:'rgba(245,101,101,'};
+  var totalPA = dirs.L.pa + dirs.C.pa + dirs.R.pa || 1;
+  var maxAvg = Math.max(
+    dirs.L.pa>0?dirs.L.h/dirs.L.pa:0,
+    dirs.C.pa>0?dirs.C.h/dirs.C.pa:0,
+    dirs.R.pa>0?dirs.R.h/dirs.R.pa:0,
+    0.001
+  );
+
+  ['L','C','R'].forEach(function(d){
+    var opEl = document.getElementById('zone-'+d);
+    var alpha, mainText, subText;
+
+    if(mode === 'pa'){
+      // 打席分布モード：打席の割合で濃さ
+      alpha = (dirs[d].pa / totalPA) * 0.7;
+      mainText = dirs[d].pa+'打席';
+      subText = Math.round(dirs[d].pa/totalPA*100)+'%';
+    } else {
+      // 打率モード：打率の高さで濃さ
+      var avg = dirs[d].pa>0 ? dirs[d].h/dirs[d].pa : 0;
+      alpha = (avg / (maxAvg||0.001)) * 0.6;
+      mainText = dirs[d].h+'安打 / '+dirs[d].pa+'打席';
+      subText = dirs[d].pa>0 ? fmtAvg(avg) : '.---';
+    }
+
+    if(opEl) opEl.setAttribute('fill', colors[d]+Math.min(alpha,0.75)+')');
+    var sv = document.getElementById('sv-'+d);
+    if(sv) sv.textContent = mainText;
+    var sva = document.getElementById('sv-'+d+'a');
+    if(sva) sva.textContent = subText;
+  });
+}
+
+function fmtOPS(v){ 
+  var s = v.toFixed(3);
+  // 1.000以上はそのまま表示
+  return v >= 1 ? v.toFixed(3) : '.'+s.split('.')[1];
+}
 
 function makeBar(label, count, total, cls){
   var pct = total>0 ? Math.round(count/total*100) : 0;
@@ -726,21 +799,9 @@ function renderDirection(){
     if(p.type==='Ld') d.ld++;
   });
 
-  // SVGヒートマップ
-  var maxPA = Math.max(dirs.L.pa, dirs.C.pa, dirs.R.pa, 1);
-  ['L','C','R'].forEach(function(d){
-    var opEl = document.getElementById('zone-'+d);
-    var alpha = dirs[d].pa/maxPA*0.35;
-    var colors = {L:'rgba(79,142,247,', C:'rgba(62,207,142,', R:'rgba(245,101,101,'};
-    if(opEl) opEl.setAttribute('fill', colors[d]+alpha+')');
-    var sv = document.getElementById('sv-'+d);
-    if(sv) sv.textContent = dirs[d].h+'安打 / '+dirs[d].pa+'打席';
-    var sva = document.getElementById('sv-'+d+'a');
-    if(sva){
-      var avg = dirs[d].pa>0 ? fmtAvg(dirs[d].h/dirs[d].pa) : '.---';
-      sva.textContent = avg;
-    }
-  });
+  // SVGヒートマップ（モード対応）
+  window._dirsCache = dirs; // renderHeatmapから参照できるよう保持
+  renderHeatmap(window._heatMode || 'pa');
 
   // 方向別打率バー
   var dab = document.getElementById('dirAvgBars');
@@ -823,9 +884,16 @@ function renderPlayers(){
     var bd = gameData.batData[num];
     return bd && bd.results && bd.results.length>0;
   });
+  players.sort(function(a,b){
+    var na = parseInt((gameData.batData[a]&&gameData.batData[a].num)||999);
+    var nb = parseInt((gameData.batData[b]&&gameData.batData[b].num)||999);
+    return na - nb;
+  });
   var html = '<div class="filter-btn'+(selectedPlayer==='all'?' active':'')+'" onclick="selectPlayer(\'all\')">全体</div>';
-  players.forEach(function(num){
-    html += '<div class="filter-btn'+(selectedPlayer===num?' active':'')+'" onclick="selectPlayer(\''+num+'\')">#'+num+' '+getMasterName(num)+'</div>';
+  players.forEach(function(key){
+    var lbl = getPlayerLabel(key);
+    var label = (lbl.num ? '#'+lbl.num+' ' : '') + lbl.name;
+    html += '<div class="filter-btn'+(selectedPlayer===key?' active':'')+'" onclick="selectPlayer(\''+key+'\')">'+label+'</div>';
   });
   filterEl.innerHTML = html;
   renderPlayerDetail(selectedPlayer, players);
@@ -841,6 +909,12 @@ function renderPlayerDetail(sel, players){
   if(sel === 'all'){
     // 全体テーブル
     var rows = '';
+    // 背番号順にソート
+    players.sort(function(a,b){
+      var na = parseInt((gameData.batData[a]&&gameData.batData[a].num)||999);
+      var nb = parseInt((gameData.batData[b]&&gameData.batData[b].num)||999);
+      return na - nb;
+    });
     players.forEach(function(key,i){
       var bd = gameData.batData[key];
       if(!bd || !bd.results) return;
@@ -854,25 +928,50 @@ function renderPlayerDetail(sel, players){
       var k = res.filter(function(p){return isK(p);}).length;
       var avg = ab>0 ? h/ab : 0;
       var extra = res.filter(function(p){return p.extra;}).length;
-      var gRate = res.filter(function(p){return p.type==='G';}).length;
-      var ldRate = res.filter(function(p){return p.type==='Ld';}).length;
+      var obCount = res.filter(function(p){return isOnBase(p);}).length;
+      var obp = pa>0 ? obCount/pa : 0;
+      var singles2 = h - extra;
+      var tb2 = singles2 + extra*2;
+      var slg2 = ab>0 ? tb2/ab : 0;
+      var ops2 = obp + slg2;
       var avgCls = avg>=0.4?'avg-high':avg>=0.25?'avg-mid':'avg-low';
+      var opsCls = ops2>=1.0?'avg-high':ops2>=0.7?'avg-mid':'avg-low';
       var orderLabel = bd.order ? (typeof bd.order==='number'?bd.order+'番':bd.order) : '-';
-      rows += '<tr style="animation:fadeUp .3s '+(i*0.05)+'s ease both">'
+      var numVal = parseInt(lbl.num) || 999;
+      var kpct = pa>0 ? k/pa : 0;
+      var bbpct = pa>0 ? bb/pa : 0;
+      rows += '<tr style="animation:fadeUp .3s '+(i*0.05)+'s ease both"'
+        +' data-num="'+numVal+'" data-pa="'+pa+'" data-ab="'+ab+'" data-h="'+h+'" data-xbh="'+extra+'"'
+        +' data-kpct="'+kpct+'" data-bbpct="'+bbpct+'" data-avg="'+(ab>0?avg:0)+'"'
+        +' data-obp="'+(pa>0?obp:0)+'" data-slg="'+(ab>0?slg2:0)+'" data-ops="'+(ab>0?ops2:0)+'">'
         +'<td><span class="player-num">'+(lbl.num?'#'+lbl.num:'')+'</span> <span class="player-name">'+lbl.name+'</span><br><span style="font-size:9px;color:var(--text3)">'+orderLabel+'</span></td>'
         +'<td>'+pa+'</td>'
         +'<td>'+ab+'</td>'
-        +'<td class="'+avgCls+'">'+(ab>0?fmtAvg(avg):'.-')+'</td>'
         +'<td>'+h+'</td>'
-        +'<td>'+k+'</td>'
-        +'<td>'+bb+'</td>'
         +'<td>'+extra+'</td>'
-        +'<td>'+gRate+'</td>'
-        +'<td>'+ldRate+'</td>'
+        +'<td>'+(pa>0?(kpct*100).toFixed(1):'.-')+'</td>'
+        +'<td>'+(pa>0?(bbpct*100).toFixed(1):'.-')+'</td>'
+        +'<td class="'+avgCls+'">'+(ab>0?fmtAvg(avg):'.-')+'</td>'
+        +'<td>'+(pa>0?fmtAvg(obp):'.-')+'</td>'
+        +'<td>'+(ab>0?fmtAvg(slg2):'.-')+'</td>'
+        +'<td class="'+opsCls+'">'+(ab>0?fmtOPS(ops2):'.-')+'</td>'
         +'</tr>';
     });
+    sortKey = 'num'; sortAsc = true; // デフォルト背番号昇順
     wrap.innerHTML = '<div class="player-table-wrap"><table class="player-table">'
-      +'<thead><tr><th>選手</th><th>PA</th><th>AB</th><th>AVG</th><th>H</th><th>K</th><th>BB</th><th>長打</th><th>G</th><th>Ld</th></tr></thead>'
+      +'<thead><tr>'
+      +'<th onclick="sortTable(\'num\')" style="cursor:pointer" id="th-num">選手 ↕</th>'
+      +'<th onclick="sortTable(\'pa\')" style="cursor:pointer" id="th-pa">PA ↕</th>'
+      +'<th onclick="sortTable(\'ab\')" style="cursor:pointer" id="th-ab">AB ↕</th>'
+      +'<th onclick="sortTable(\'h\')" style="cursor:pointer" id="th-h">H ↕</th>'
+      +'<th onclick="sortTable(\'xbh\')" style="cursor:pointer" id="th-xbh">XBH ↕</th>'
+      +'<th onclick="sortTable(\'kpct\')" style="cursor:pointer" id="th-kpct">K% ↕</th>'
+      +'<th onclick="sortTable(\'bbpct\')" style="cursor:pointer" id="th-bbpct">BB% ↕</th>'
+      +'<th onclick="sortTable(\'avg\')" style="cursor:pointer" id="th-avg">AVG ↕</th>'
+      +'<th onclick="sortTable(\'obp\')" style="cursor:pointer" id="th-obp">OBP ↕</th>'
+      +'<th onclick="sortTable(\'slg\')" style="cursor:pointer" id="th-slg">SLG ↕</th>'
+      +'<th onclick="sortTable(\'ops\')" style="cursor:pointer" id="th-ops">OPS ↕</th>'
+      +'</tr></thead>'
       +'<tbody>'+rows+'</tbody></table></div>';
   } else {
     // 個人詳細
@@ -895,11 +994,44 @@ function renderPlayerDetail(sel, players){
     var extraList = res.filter(function(x){return x.p.extra;});
 
     // KPIカード
-    var kpiHtml = '<div class="kpi-grid" style="margin-bottom:16px">'
-      +'<div class="kpi-card gold"><div class="kpi-val">'+fmtAvg(avg)+'</div><div class="kpi-label">打率</div></div>'
-      +'<div class="kpi-card blue"><div class="kpi-val">'+fmtAvg(obp)+'</div><div class="kpi-label">出塁率</div></div>'
-      +'<div class="kpi-card green"><div class="kpi-val">'+hList.length+'</div><div class="kpi-label">安打</div></div>'
-      +'<div class="kpi-card purple"><div class="kpi-val">'+pa+'</div><div class="kpi-label">打席</div></div>'
+    var kC = res.filter(function(x){return isK(x.p);}).length;
+    var bbC = res.filter(function(x){return isBB(x.p);}).length;
+    // SLG: 塁打数÷打数（単打=1, 長打=2以上として2で計算）
+    var singles = hList.filter(function(x){return !x.p.extra;}).length;
+    var extras = extraList.length;
+    var tb = singles + extras * 2; // 簡易塁打（長打を一律2塁打扱い）
+    var slg = ab > 0 ? tb / ab : 0;
+    var ops = obp + slg;
+    var ldC2 = res.filter(function(x){return x.p.type==='Ld';}).length;
+    var lineRate = pa > 0 ? ldC2/pa : 0;
+    var rbiC = res.reduce(function(s,x){return s+(x.p.rbi||0);}, 0);
+    var kPct = pa>0 ? kC/pa : 0;
+    var bbPct = pa>0 ? bbC/pa : 0;
+    function fmtPct(v){ return (v*100).toFixed(1)+'%'; }
+    var kpiHtml = ''
+      +'<div class="kpi-grid" style="margin-bottom:8px">'
+      +'<div class="kpi-card"><div class="kpi-val" style="color:var(--text)">'+pa+'</div><div class="kpi-label" style="color:var(--text2)">打席 PA</div></div>'
+      +'<div class="kpi-card"><div class="kpi-val" style="color:var(--text)">'+ab+'</div><div class="kpi-label" style="color:var(--text2)">打数 AB</div></div>'
+      +'</div>'
+      +'<div class="kpi-grid" style="margin-bottom:8px">'
+      +'<div class="kpi-card green"><div class="kpi-val">'+hList.length+'</div><div class="kpi-label">安打 H</div></div>'
+      +'<div class="kpi-card"><div class="kpi-val" style="color:var(--green)">'+extraList.length+'</div><div class="kpi-label" style="color:var(--text2)">長打 XBH</div></div>'
+      +'</div>'
+      +'<div class="kpi-grid" style="margin-bottom:8px">'
+      +'<div class="kpi-card"><div class="kpi-val" style="color:var(--gold)">'+rbiC+'</div><div class="kpi-label" style="color:var(--text2)">打点 RBI</div></div>'
+      +'<div class="kpi-card"><div class="kpi-val" style="color:var(--green)">'+(bd.sb||0)+'</div><div class="kpi-label" style="color:var(--text2)">盗塁 SB</div></div>'
+      +'</div>'
+      +'<div class="kpi-grid" style="margin-bottom:8px">'
+      +'<div class="kpi-card"><div class="kpi-val" style="color:var(--red)">'+kC+'</div><div class="kpi-label" style="color:var(--text2)">三振 K <span style="color:var(--red);font-size:11px;margin-left:6px">'+(pa>0?fmtPct(kPct):'')+'</span></div></div>'
+      +'<div class="kpi-card"><div class="kpi-val" style="color:var(--purple)">'+bbC+'</div><div class="kpi-label" style="color:var(--text2)">四死球 <span style="color:var(--purple);font-size:11px;margin-left:6px">'+(pa>0?fmtPct(bbPct):'')+'</span></div></div>'
+      +'</div>'
+      +'<div class="kpi-grid" style="margin-bottom:8px">'
+      +'<div class="kpi-card gold"><div class="kpi-val">'+fmtAvg(avg)+'</div><div class="kpi-label">打率 AVG</div></div>'
+      +'<div class="kpi-card blue"><div class="kpi-val">'+fmtAvg(obp)+'</div><div class="kpi-label">出塁率 OBP</div></div>'
+      +'</div>'
+      +'<div class="kpi-grid" style="margin-bottom:16px">'
+      +'<div class="kpi-card purple"><div class="kpi-val">'+fmtAvg(slg)+'</div><div class="kpi-label">長打率 SLG</div></div>'
+      +'<div class="kpi-card" style="border-color:rgba(232,184,75,0.6);background:rgba(232,184,75,0.1)"><div class="kpi-val" style="color:var(--accent)">'+fmtOPS(ops)+'</div><div class="kpi-label" style="color:var(--accent)">OPS</div></div>'
       +'</div>';
 
     // 打球種別ドーナツ
@@ -918,14 +1050,15 @@ function renderPlayerDetail(sel, players){
 
     var typeTot = gC+fC+ldC||1;
     var typeBarHtml = '<div class="chart-wrap"><div class="chart-title">打球種別</div>'
-      +makeBar('ゴロ G',gC,typeTot,'g')+makeBar('フライ F',fC,typeTot,'gray')+makeBar('ライナー Ld',ldC,typeTot,'blue')+'</div>';
+      +makeBar('ゴロ G',gC,typeTot,'g')+makeBar('フライ F',fC,typeTot,'gray')+makeBar('ライナー Ld',ldC,typeTot,'p')+'</div>';
 
     // 打席ログ
     var logHtml = '<div class="game-log-wrap"><div class="game-log-header"><div class="game-log-title">打席記録</div></div><div class="game-log-body">';
     res.forEach(function(r,i){
       var p = r.p;
       var resLabel='', resCls='';
-      if(p.result==='○'){resLabel='安打';resCls='result-hit';}
+      if(isHit(p)){resLabel='安打';resCls='result-hit';}
+      else if(p.result==='OB'||p.result==='BB'){resLabel='四死球';resCls='result-bb';}
       else if(p.result==='Ks'){resLabel='空振K';resCls='result-k';}
       else if(p.result==='Kl'){resLabel='見逃K';resCls='result-k';}
       else if(p.result==='BB'){resLabel='四球';resCls='result-bb';}
@@ -933,7 +1066,7 @@ function renderPlayerDetail(sel, players){
       else if(p.result==='B'){resLabel='バント';resCls='result-hit';}
       else if(isOut(p)){resLabel='アウト';resCls='result-out';}
       var dir = p.dir ? {L:'L レフト',C:'C センター',R:'R ライト'}[p.dir]||p.dir : '';
-      var type = p.type ? {G:'ゴロ',F:'フライ',Ld:'ライナー'}[p.type]||p.type : '';
+      var type = p.type ? {G:'ゴロ',F:'フライ',Ld:'ライナー',K:'',B:''}[p.type]||'' : '';
       var extras = [];
       if(p.extra) extras.push('長打');
       if(p.rbi>0) extras.push(p.rbi+'打点');
@@ -971,6 +1104,11 @@ function renderLog(){
     var bd = gameData.batData[key];
     return bd && bd.results && bd.results.length>0;
   });
+  players.sort(function(a,b){
+    var na = parseInt((gameData.batData[a]&&gameData.batData[a].num)||999);
+    var nb = parseInt((gameData.batData[b]&&gameData.batData[b].num)||999);
+    return na - nb;
+  });
   var html = '';
   players.forEach(function(key){
     var bd = gameData.batData[key];
@@ -1001,6 +1139,43 @@ function renderLog(){
     html += '</div></div>';
   });
   wrap.innerHTML = html;
+}
+
+
+// ============================================================
+// TABLE SORT
+// ============================================================
+var sortKey = null;
+var sortAsc = false;
+
+function sortTable(key){
+  if(sortKey === key){
+    sortAsc = !sortAsc;
+  } else {
+    sortKey = key;
+    sortAsc = false; // 最初は降順
+  }
+
+  // ヘッダーの矢印を更新
+  var keys = ['num','pa','ab','h','xbh','kpct','bbpct','avg','obp','slg','ops'];
+  keys.forEach(function(k){
+    var th = document.getElementById('th-'+k);
+    if(!th) return;
+    var label = th.textContent.replace(/ [↑↓↕]$/,'');
+    th.textContent = label + (k===sortKey ? (sortAsc?' ↑':' ↓') : ' ↕');
+    th.style.color = k===sortKey ? 'var(--accent)' : '';
+  });
+
+  // tbody内の行をソート
+  var tbody = document.querySelector('#playerDetailWrap tbody');
+  if(!tbody) return;
+  var rows = Array.from(tbody.querySelectorAll('tr'));
+  rows.sort(function(a,b){
+    var av = parseFloat(a.dataset[key]) || 0;
+    var bv = parseFloat(b.dataset[key]) || 0;
+    return sortAsc ? av-bv : bv-av;
+  });
+  rows.forEach(function(r){ tbody.appendChild(r); });
 }
 
 // ============================================================
@@ -1080,37 +1255,50 @@ function doImport(file){
           // formula result
           if(v.result !== undefined) return String(v.result);
           // hyperlink
-          if(v.text !== undefined) return String(v.text);
+          if(v.text !== undefined) return typeof v.text === 'object' ? (v.text.richText ? v.text.richText.map(function(r){return r.text;}).join('') : String(v.text)) : String(v.text);
           return String(v);
         }
         return String(v);
       }
 
-      ws.eachRow(function(row, rowNum){
-        if(rowNum <= 4) return; // ヘッダー行をスキップ（1〜4行目）
+      ws.eachRow({includeEmpty:false}, function(row, rowNum){
+        if(rowNum <= 5) return; // ヘッダー行をスキップ（1〜5行目）
         var opponent = cellStr(row.getCell(2)).trim();
         var order = cellStr(row.getCell(3)).trim();
         var num = cellStr(row.getCell(4)).trim();
         var name = cellStr(row.getCell(5)).trim();
         var pos = cellStr(row.getCell(6)).trim();
         var batRaw = cellStr(row.getCell(7)).trim();
+        var runRaw = cellStr(row.getCell(8)).trim();
 
-        if(!name || !batRaw) return; // 名前をキーにする
+        // 名前が取れない場合は背番号で代替
+        if(!name || name === '[object Object]') name = num ? '背番号'+num : '';
+        if(!name) return;
+        if(!batRaw && !runRaw) return; // 打撃も走塁もなければスキップ
 
         // マスタ登録（名前→背番号・ポジションの最新値を保持）
         masterMap[name] = {name:name, num:num, pos:pos};
 
-        // 打撃記録をカンマ分割
-        var codes = batRaw.split(',').map(function(c){ return c.trim(); }).filter(Boolean);
-        if(codes.length === 0) return;
+
 
         if(!batData[name]){
-          batData[name] = {results:[], rbi:0, ab:0, pa:0, h:0, k:0, bb:0, order:order, pos:pos, num:num};
+          batData[name] = {results:[], rbi:0, ab:0, pa:0, h:0, k:0, bb:0, order:order, pos:pos, num:num, sb:0, sbo:0};
         }
         // 背番号・ポジションは最新値で更新
         batData[name].num = num;
         batData[name].pos = pos;
-        codes.forEach(function(c){ batData[name].results.push(c); });
+        if(batRaw){
+          var codes = batRaw.split(',').map(function(c){ return c.trim(); }).filter(Boolean);
+          codes.forEach(function(c){ batData[name].results.push(c); });
+        }
+        // 走塁記録を集計
+        if(runRaw){
+          var runCodes = runRaw.split(',').map(function(c){ return c.trim(); }).filter(Boolean);
+          runCodes.forEach(function(c){
+            if(c === 'SB+') batData[name].sb = (batData[name].sb||0) + 1;
+            if(c === 'SB-') batData[name].sbo = (batData[name].sbo||0) + 1;
+          });
+        }
 
         if(opponent) games[opponent] = true;
         rowCount++;
