@@ -329,6 +329,8 @@ main{position:relative;z-index:1;padding:16px;padding-bottom:40px}
   <div class="tab" onclick="switchTab('direction')" id="tab-direction">方向・打球</div>
   <div class="tab" onclick="switchTab('players')" id="tab-players">選手別</div>
   <div class="tab" onclick="switchTab('log')" id="tab-log">打席ログ</div>
+  <div class="tab" onclick="switchTab('fielding')" id="tab-fielding">野手</div>
+  <div class="tab" onclick="switchTab('pitching')" id="tab-pitching">投手</div>
 </div>
 
 <main>
@@ -468,6 +470,54 @@ main{position:relative;z-index:1;padding:16px;padding-bottom:40px}
       <div class="empty-title">打席記録なし</div>
       <div class="empty-desc">baseball_recorder.htmlで<br>試合を記録してください</div>
     </div>
+  </div>
+</div>
+
+<!-- ========== FIELDING TAB ========== -->
+<div class="panel" id="panel-fielding">
+  <div class="sec-label">チーム守備</div>
+  <div class="kpi-grid wide" style="margin-bottom:16px">
+    <div class="kpi-card green"><div class="kpi-val" id="fldO">0</div><div class="kpi-label">アウト関与</div></div>
+    <div class="kpi-card red" style="border-color:rgba(245,101,101,0.3);background:rgba(245,101,101,0.06)"><div class="kpi-val" style="color:var(--red)" id="fldE">0</div><div class="kpi-label">エラー計</div></div>
+    <div class="kpi-card"><div class="kpi-val" style="color:var(--text2)" id="fldN">0</div><div class="kpi-label">関与・非アウト</div></div>
+    <div class="kpi-card purple"><div class="kpi-val" id="fldErate">-</div><div class="kpi-label">エラー率</div></div>
+  </div>
+  <div class="sec-label">選手別守備</div>
+  <div class="player-table-wrap">
+    <table class="player-table">
+      <thead>
+        <tr>
+          <th>#</th><th style="text-align:left">名前</th><th>O</th><th>N</th><th>Ec</th><th>Et</th><th>Ej</th><th>E計</th>
+        </tr>
+      </thead>
+      <tbody id="fieldingBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ========== PITCHING TAB ========== -->
+<div class="panel" id="panel-pitching">
+  <div class="sec-label">チーム投手</div>
+  <div class="kpi-grid wide" style="margin-bottom:8px">
+    <div class="kpi-card blue"><div class="kpi-val" id="pitIP">0</div><div class="kpi-label">投球回 IP</div></div>
+    <div class="kpi-card green"><div class="kpi-val" id="pitK">0</div><div class="kpi-label">奪三振 K</div></div>
+    <div class="kpi-card purple"><div class="kpi-val" id="pitBB">0</div><div class="kpi-label">与四死球</div></div>
+    <div class="kpi-card"><div class="kpi-val" style="color:var(--text2)" id="pitH">0</div><div class="kpi-label">被安打</div></div>
+  </div>
+  <div class="kpi-grid" style="margin-bottom:16px">
+    <div class="kpi-card" style="border-color:rgba(245,101,101,0.3);background:rgba(245,101,101,0.06)"><div class="kpi-val" style="color:var(--red)" id="pitR">0</div><div class="kpi-label">失点 R</div></div>
+    <div class="kpi-card gold"><div class="kpi-val" id="pitERA">-</div><div class="kpi-label">防御率 ERA</div></div>
+  </div>
+  <div class="sec-label">選手別投手成績</div>
+  <div class="player-table-wrap">
+    <table class="player-table">
+      <thead>
+        <tr>
+          <th>#</th><th style="text-align:left">名前</th><th>回</th><th>K</th><th>BB</th><th>H</th><th>R</th><th>防御率</th>
+        </tr>
+      </thead>
+      <tbody id="pitchingBody"></tbody>
+    </table>
   </div>
 </div>
 
@@ -1222,7 +1272,7 @@ function sortTable(key){
 // ============================================================
 // TAB SWITCHING
 // ============================================================
-var panels = ['overview','direction','players','log'];
+var panels = ['overview','direction','players','log','fielding','pitching'];
 function switchTab(name){
   panels.forEach(function(n){
     document.getElementById('panel-'+n).className = 'panel'+(n===name?' active':'');
@@ -1233,6 +1283,8 @@ function switchTab(name){
   if(name==='direction') renderDirection();
   if(name==='players') renderPlayers();
   if(name==='log') renderLog();
+  if(name==='fielding') renderFielding();
+  if(name==='pitching') renderPitching();
 }
 
 // ============================================================
@@ -1311,11 +1363,17 @@ function doImport(file){
         var pos = cellStr(row.getCell(6)).trim();
         var batRaw = cellStr(row.getCell(7)).trim();
         var runRaw = cellStr(row.getCell(8)).trim();
+        var fldRaw = cellStr(row.getCell(9)).trim();
+        var pitO   = cellStr(row.getCell(10)).trim();
+        var pitK   = cellStr(row.getCell(11)).trim();
+        var pitBB  = cellStr(row.getCell(12)).trim();
+        var pitH   = cellStr(row.getCell(13)).trim();
+        var pitR   = cellStr(row.getCell(14)).trim();
 
         // 名前が取れない場合は背番号で代替
         if(!name || name === '[object Object]') name = num ? '背番号'+num : '';
         if(!name) return;
-        if(!batRaw && !runRaw) return;
+        if(!batRaw && !runRaw && !fldRaw && !pitO && !pitK && !pitBB && !pitH && !pitR) return;
 
         // マスタ登録
         masterMap[name] = {name:name, num:num, pos:pos};
@@ -1330,7 +1388,9 @@ function doImport(file){
         var gbd = gamesMap[gameKey].batData;
 
         if(!gbd[name]){
-          gbd[name] = {results:[], order:order, pos:pos, num:num, sb:0, sbo:0};
+          gbd[name] = {results:[], order:order, pos:pos, num:num, sb:0, sbo:0,
+                       fldO:0, fldN:0, fldEc:0, fldEt:0, fldEj:0,
+                       pitO:0, pitK:0, pitBB:0, pitH:0, pitR:0};
         }
         gbd[name].num = num;
         gbd[name].pos = pos;
@@ -1345,6 +1405,21 @@ function doImport(file){
             if(c === 'SB-') gbd[name].sbo = (gbd[name].sbo||0) + 1;
           });
         }
+        if(fldRaw){
+          var fldCodes = fldRaw.split(',').map(function(c){ return c.trim(); }).filter(Boolean);
+          fldCodes.forEach(function(c){
+            if(c==='O')  gbd[name].fldO  = (gbd[name].fldO||0)  + 1;
+            if(c==='N')  gbd[name].fldN  = (gbd[name].fldN||0)  + 1;
+            if(c==='Ec') gbd[name].fldEc = (gbd[name].fldEc||0) + 1;
+            if(c==='Et') gbd[name].fldEt = (gbd[name].fldEt||0) + 1;
+            if(c==='Ej') gbd[name].fldEj = (gbd[name].fldEj||0) + 1;
+          });
+        }
+        if(pitO)  gbd[name].pitO  = (gbd[name].pitO||0)  + (parseFloat(pitO)||0);
+        if(pitK)  gbd[name].pitK  = (gbd[name].pitK||0)  + (parseInt(pitK)||0);
+        if(pitBB) gbd[name].pitBB = (gbd[name].pitBB||0) + (parseInt(pitBB)||0);
+        if(pitH)  gbd[name].pitH  = (gbd[name].pitH||0)  + (parseInt(pitH)||0);
+        if(pitR)  gbd[name].pitR  = (gbd[name].pitR||0)  + (parseInt(pitR)||0);
         rowCount++;
       });
 
@@ -1397,12 +1472,24 @@ function buildGameData(){
     Object.keys(g.batData).forEach(function(name){
       var src = g.batData[name];
       if(!batData[name]){
-        batData[name] = {results:[], order:src.order, pos:src.pos, num:src.num, sb:0, sbo:0};
+        batData[name] = {results:[], order:src.order, pos:src.pos, num:src.num, sb:0, sbo:0,
+                         fldO:0, fldN:0, fldEc:0, fldEt:0, fldEj:0,
+                         pitO:0, pitK:0, pitBB:0, pitH:0, pitR:0};
       }
       batData[name].num = src.num;
       src.results.forEach(function(r){ batData[name].results.push(r); });
-      batData[name].sb = (batData[name].sb||0) + (src.sb||0);
-      batData[name].sbo = (batData[name].sbo||0) + (src.sbo||0);
+      batData[name].sb   = (batData[name].sb||0)   + (src.sb||0);
+      batData[name].sbo  = (batData[name].sbo||0)  + (src.sbo||0);
+      batData[name].fldO  = (batData[name].fldO||0)  + (src.fldO||0);
+      batData[name].fldN  = (batData[name].fldN||0)  + (src.fldN||0);
+      batData[name].fldEc = (batData[name].fldEc||0) + (src.fldEc||0);
+      batData[name].fldEt = (batData[name].fldEt||0) + (src.fldEt||0);
+      batData[name].fldEj = (batData[name].fldEj||0) + (src.fldEj||0);
+      batData[name].pitO  = (batData[name].pitO||0)  + (src.pitO||0);
+      batData[name].pitK  = (batData[name].pitK||0)  + (src.pitK||0);
+      batData[name].pitBB = (batData[name].pitBB||0) + (src.pitBB||0);
+      batData[name].pitH  = (batData[name].pitH||0)  + (src.pitH||0);
+      batData[name].pitR  = (batData[name].pitR||0)  + (src.pitR||0);
     });
   });
 
@@ -1472,6 +1559,107 @@ function clearImport(){
 }
 
 // ============================================================
+// FIELDING
+// ============================================================
+function renderFielding(){
+  var bd = gameData.batData || {};
+  var totO=0, totN=0, totEc=0, totEt=0, totEj=0;
+  var rows = [];
+  Object.keys(bd).forEach(function(name){
+    var p = bd[name];
+    var o=p.fldO||0, n=p.fldN||0, ec=p.fldEc||0, et=p.fldEt||0, ej=p.fldEj||0;
+    var e = ec+et+ej;
+    if(o+n+e === 0) return;
+    totO+=o; totN+=n; totEc+=ec; totEt+=et; totEj+=ej;
+    rows.push({name:name, num:p.num||'', o:o, n:n, ec:ec, et:et, ej:ej, e:e});
+  });
+  rows.sort(function(a,b){ return b.o - a.o; });
+
+  var totE = totEc+totEt+totEj;
+  var totPlay = totO+totN+totE;
+  var eRate = totPlay>0 ? (totE/totPlay*100).toFixed(1)+'%' : '-';
+
+  document.getElementById('fldO').textContent = totO;
+  document.getElementById('fldE').textContent = totE;
+  document.getElementById('fldN').textContent = totN;
+  document.getElementById('fldErate').textContent = eRate;
+
+  var tbody = document.getElementById('fieldingBody');
+  if(rows.length === 0){
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:20px">守備データなし</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(function(r){
+    var eCls = r.e>0 ? 'color:var(--red)' : 'color:var(--text3)';
+    return '<tr>'
+      +'<td><span class="player-num">'+r.num+'</span></td>'
+      +'<td><span class="player-name">'+r.name+'</span></td>'
+      +'<td style="color:var(--green);font-weight:700">'+r.o+'</td>'
+      +'<td style="color:var(--text2)">'+r.n+'</td>'
+      +'<td style="color:var(--red)">'+r.ec+'</td>'
+      +'<td style="color:var(--red)">'+r.et+'</td>'
+      +'<td style="color:var(--red)">'+r.ej+'</td>'
+      +'<td style="'+eCls+';font-weight:700">'+r.e+'</td>'
+      +'</tr>';
+  }).join('');
+}
+
+// ============================================================
+// PITCHING
+// ============================================================
+function renderPitching(){
+  var bd = gameData.batData || {};
+  var totO=0, totK=0, totBB=0, totH=0, totR=0;
+  var rows = [];
+  Object.keys(bd).forEach(function(name){
+    var p = bd[name];
+    var o=p.pitO||0, k=p.pitK||0, bb=p.pitBB||0, h=p.pitH||0, r=p.pitR||0;
+    if(o+k+bb+h+r === 0) return;
+    totO+=o; totK+=k; totBB+=bb; totH+=h; totR+=r;
+    rows.push({name:name, num:p.num||'', o:o, k:k, bb:bb, h:h, r:r});
+  });
+  rows.sort(function(a,b){ return b.o - a.o; });
+
+  // 投球回：アウト数 / 3（例：7アウト → 2.1回）
+  function toIP(outs){
+    var inn = Math.floor(outs/3);
+    var rem = outs%3;
+    return rem===0 ? String(inn) : inn+'.'+rem;
+  }
+  function era(r, outs){
+    if(outs===0) return '-';
+    return (r / outs * 27).toFixed(2); // 9回換算
+  }
+
+  document.getElementById('pitIP').textContent  = toIP(totO);
+  document.getElementById('pitK').textContent   = totK;
+  document.getElementById('pitBB').textContent  = totBB;
+  document.getElementById('pitH').textContent   = totH;
+  document.getElementById('pitR').textContent   = totR;
+  document.getElementById('pitERA').textContent = era(totR, totO);
+
+  var tbody = document.getElementById('pitchingBody');
+  if(rows.length === 0){
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:20px">投手データなし</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(function(r){
+    var erVal = era(r.r, r.o);
+    var eraCls = erVal==='-' ? 'color:var(--text3)' : parseFloat(erVal)<3 ? 'color:var(--green);font-weight:700' : parseFloat(erVal)<5 ? 'color:var(--gold)' : 'color:var(--red)';
+    return '<tr>'
+      +'<td><span class="player-num">'+r.num+'</span></td>'
+      +'<td><span class="player-name">'+r.name+'</span></td>'
+      +'<td style="color:var(--blue);font-weight:700">'+toIP(r.o)+'</td>'
+      +'<td style="color:var(--green)">'+r.k+'</td>'
+      +'<td style="color:var(--purple)">'+r.bb+'</td>'
+      +'<td style="color:var(--text2)">'+r.h+'</td>'
+      +'<td style="color:var(--red)">'+r.r+'</td>'
+      +'<td style="'+eraCls+'">'+erVal+'</td>'
+      +'</tr>';
+  }).join('');
+}
+
+// ============================================================
 // INIT
 // ============================================================
 loadData();
@@ -1485,6 +1673,8 @@ setInterval(function(){
   if(activePanel==='direction') renderDirection();
   if(activePanel==='players') renderPlayers();
   if(activePanel==='log') renderLog();
+  if(activePanel==='fielding') renderFielding();
+  if(activePanel==='pitching') renderPitching();
 }, 30000);
 </script>
 </body>
