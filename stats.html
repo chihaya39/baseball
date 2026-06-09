@@ -313,7 +313,7 @@ main{position:relative;z-index:1;padding:16px;padding-bottom:40px}
   <button id="importClearBtn" onclick="clearImport()" style="display:none;margin-left:auto;background:none;border:1px solid #2a3a5a;border-radius:16px;color:#4a5570;font-size:11px;padding:5px 12px;cursor:pointer">✕ クリア</button>
 </div>
 
-<div id="gameFilterBar" style="display:none;background:#0a0f1a;border-bottom:1px solid #1e2a45;padding:8px 16px"><details id="gameDetails" style="list-style:none"><summary id="gameDropdownLabel" style="background:#111827;border:1px solid #2a3a5a;border-radius:8px;color:#e8b84b;font-size:12px;font-weight:700;padding:7px 14px;cursor:pointer;list-style:none;display:inline-block;min-width:240px">全試合</summary><div id="gameDropdownMenu" style="position:absolute;z-index:999;background:#111827;border:1px solid #2a3a5a;border-radius:8px;margin-top:4px;min-width:280px;max-height:280px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,0.6)"></div></details></div>
+<div id="gameFilterBar" style="display:none;background:#0a0f1a;border-bottom:1px solid #1e2a45;padding:6px 16px;overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch"><span style="font-size:10px;color:#4a5570;font-weight:700;letter-spacing:.08em;margin-right:8px">試合</span><span id="gameFilterButtons"></span></div>
 
 <div class="tab-bar">
   <div class="tab active" onclick="switchTab('overview')" id="tab-overview">概要</div>
@@ -1420,9 +1420,7 @@ function selectGame(idx){
   selectedGame = idx;
   buildGameData();
   renderGameFilter();
-  // detailsを閉じる
-  var details = document.getElementById('gameDetails');
-  if(details) details.removeAttribute('open');
+
   var activePanel = panels.find(function(n){ return document.getElementById('panel-'+n).className.includes('active'); });
   switchTab(activePanel || 'overview');
 }
