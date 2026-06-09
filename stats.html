@@ -784,11 +784,13 @@ function fmtOPS(v){
 
 function makeBar(label, count, total, cls){
   var pct = total>0 ? Math.round(count/total*100) : 0;
+  var insideCount = pct>12 ? '<span style="color:rgba(255,255,255,0.7)">'+count+'</span>' : '';
+  var outsideCount = pct<=12 && count>0 ? '<span style="font-size:10px;font-weight:700;color:var(--text2);margin-left:4px">'+count+'</span>' : '';
   return '<div class="bar-row">'
     +'<div class="bar-label">'+label+'</div>'
     +'<div class="bar-track"><div class="bar-fill '+cls+'" style="width:'+pct+'%">'
-    +(pct>12?'<span style="color:rgba(255,255,255,0.7)">'+count+'</span>':'')
-    +'</div></div>'
+    +insideCount
+    +'</div>'+outsideCount+'</div>'
     +'<div class="bar-pct">'+pct+'%</div>'
     +'</div>';
 }
