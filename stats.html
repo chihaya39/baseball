@@ -1582,7 +1582,7 @@ function renderFielding(){
   });
 
   var filterEl = document.getElementById('fieldingFilter');
-  var html = '<div class="filter-btn'+(selectedFielder==='all'?' active':'')+'" onclick="selectFielder('all')">全体</div>';
+  var html = '<div class="filter-btn'+(selectedFielder==='all'?' active':'')+'" onclick="selectFielder(\'all\')">全体</div>';
   players.forEach(function(name){
     var p = bd[name];
     var lbl = (p.num ? '#'+p.num+' ' : '') + name;
