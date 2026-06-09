@@ -1692,7 +1692,7 @@ function toIP(outs){
 }
 function calcERA(r, outs){
   if(outs===0) return '-';
-  return (r / outs * 27).toFixed(2);
+  return (r / outs * 21).toFixed(2); // 7回×3アウト換算
 }
 
 var selectedPitcher = 'all';
@@ -1727,6 +1727,13 @@ function renderPitchingDetail(sel, pitchers){
   var bd = gameData.batData || {};
   var wrap = document.getElementById('pitchingDetailWrap');
 
+  // 投手計算ヘルパー（7回=21アウト換算）
+  function pitRate(val, outs){ return outs===0 ? '-' : (val/outs*21).toFixed(2); }
+  function whip(bb, h, outs){ return outs===0 ? '-' : ((bb+h)/(outs/3)).toFixed(2); }
+  function kbb(k, bb){ return bb===0 ? '-' : (k/bb).toFixed(2); }
+  function eraCls(v){ return v==='-'?'color:var(--text3)':parseFloat(v)<3?'color:var(--green);font-weight:700':parseFloat(v)<4?'color:var(--gold)':'color:var(--red)'; }
+  function whipCls(v){ return v==='-'?'color:var(--text3)':parseFloat(v)<1.2?'color:var(--green);font-weight:700':parseFloat(v)<1.6?'color:var(--gold)':'color:var(--red)'; }
+
   if(sel === 'all'){
     var totO=0,totK=0,totBB=0,totH=0,totR=0;
     var rows = pitchers.map(function(name){
@@ -1735,20 +1742,28 @@ function renderPitchingDetail(sel, pitchers){
       totO+=o; totK+=k; totBB+=bb; totH+=h; totR+=r;
       return {name:name, num:p.num||'', o:o, k:k, bb:bb, h:h, r:r};
     });
+    var eraV=calcERA(totR,totO), whipV=whip(totBB,totH,totO), kbbV=kbb(totK,totBB);
+    var k7V=pitRate(totK,totO), bb7V=pitRate(totBB,totO), h7V=pitRate(totH,totO);
     var teamKpi = '<div class="kpi-grid wide" style="margin-bottom:8px">'
       +'<div class="kpi-card blue"><div class="kpi-val">'+toIP(totO)+'</div><div class="kpi-label">投球回 IP</div></div>'
       +'<div class="kpi-card green"><div class="kpi-val">'+totK+'</div><div class="kpi-label">奪三振 K</div></div>'
       +'<div class="kpi-card purple"><div class="kpi-val">'+totBB+'</div><div class="kpi-label">与四死球</div></div>'
       +'<div class="kpi-card"><div class="kpi-val" style="color:var(--text2)">'+totH+'</div><div class="kpi-label">被安打</div></div>'
       +'</div>'
-      +'<div class="kpi-grid" style="margin-bottom:16px">'
+      +'<div class="kpi-grid wide" style="margin-bottom:8px">'
       +'<div class="kpi-card" style="border-color:rgba(245,101,101,0.3);background:rgba(245,101,101,0.06)"><div class="kpi-val" style="color:var(--red)">'+totR+'</div><div class="kpi-label">失点 R</div></div>'
-      +'<div class="kpi-card gold"><div class="kpi-val">'+calcERA(totR,totO)+'</div><div class="kpi-label">防御率 ERA</div></div>'
+      +'<div class="kpi-card gold"><div class="kpi-val" style="'+eraCls(eraV)+'">'+eraV+'</div><div class="kpi-label">防御率 ERA</div></div>'
+      +'<div class="kpi-card"><div class="kpi-val" style="'+whipCls(whipV)+'">'+whipV+'</div><div class="kpi-label">WHIP</div></div>'
+      +'<div class="kpi-card"><div class="kpi-val" style="color:var(--blue)">'+kbbV+'</div><div class="kpi-label">K/BB</div></div>'
+      +'</div>'
+      +'<div class="kpi-grid wide" style="margin-bottom:16px">'
+      +'<div class="kpi-card green"><div class="kpi-val" style="font-size:1.2rem">'+k7V+'</div><div class="kpi-label">奪三振率 K/7</div></div>'
+      +'<div class="kpi-card purple"><div class="kpi-val" style="font-size:1.2rem">'+bb7V+'</div><div class="kpi-label">与四死球率 BB/7</div></div>'
+      +'<div class="kpi-card"><div class="kpi-val" style="font-size:1.2rem;color:var(--text2)">'+h7V+'</div><div class="kpi-label">被安打率 H/7</div></div>'
       +'</div>';
     if(rows.length===0){wrap.innerHTML=teamKpi+'<div class="empty"><div class="empty-icon">⚾</div><div class="empty-title">投手データなし</div></div>';return;}
     var tableRows = rows.map(function(r){
-      var erVal=calcERA(r.r,r.o);
-      var eraCls=erVal==='-'?'color:var(--text3)':parseFloat(erVal)<3?'color:var(--green);font-weight:700':parseFloat(erVal)<5?'color:var(--gold)':'color:var(--red)';
+      var ev=calcERA(r.r,r.o), wv=whip(r.bb,r.h,r.o), kv=pitRate(r.k,r.o);
       return '<tr>'
         +'<td><span class="player-num">'+(r.num?'#'+r.num:'')+'</span></td>'
         +'<td style="text-align:left"><span class="player-name">'+r.name+'</span></td>'
@@ -1757,30 +1772,38 @@ function renderPitchingDetail(sel, pitchers){
         +'<td style="color:var(--purple)">'+r.bb+'</td>'
         +'<td style="color:var(--text2)">'+r.h+'</td>'
         +'<td style="color:var(--red)">'+r.r+'</td>'
-        +'<td style="'+eraCls+'">'+erVal+'</td>'
+        +'<td style="'+eraCls(ev)+'">'+ev+'</td>'
+        +'<td style="'+whipCls(wv)+'">'+wv+'</td>'
+        +'<td style="color:var(--green)">'+kv+'</td>'
         +'</tr>';
     }).join('');
     wrap.innerHTML = teamKpi
       +'<div class="player-table-wrap"><table class="player-table">'
-      +'<thead><tr><th>#</th><th style="text-align:left">名前</th><th>回</th><th>K</th><th>BB</th><th>H</th><th>R</th><th>防御率</th></tr></thead>'
+      +'<thead><tr><th>#</th><th style="text-align:left">名前</th><th>回</th><th>K</th><th>BB</th><th>H</th><th>R</th><th>ERA</th><th>WHIP</th><th>K/7</th></tr></thead>'
       +'<tbody>'+tableRows+'</tbody></table></div>';
   } else {
     var p = bd[sel];
     if(!p){wrap.innerHTML='<div class="empty"><div class="empty-icon">⚾</div><div class="empty-title">データなし</div></div>';return;}
     var o=p.pitO||0,k=p.pitK||0,bb=p.pitBB||0,h=p.pitH||0,r=p.pitR||0;
-    var erVal=calcERA(r,o);
-    var eraCls=erVal==='-'?'color:var(--text3)':parseFloat(erVal)<3?'color:var(--green);font-weight:700':parseFloat(erVal)<5?'color:var(--gold)':'color:var(--red)';
+    var eraV=calcERA(r,o), whipV=whip(bb,h,o), kbbV=kbb(k,bb);
+    var k7V=pitRate(k,o), bb7V=pitRate(bb,o), h7V=pitRate(h,o);
     var kpiHtml = '<div class="kpi-grid wide" style="margin-bottom:8px">'
       +'<div class="kpi-card blue"><div class="kpi-val">'+toIP(o)+'</div><div class="kpi-label">投球回 IP</div></div>'
       +'<div class="kpi-card green"><div class="kpi-val">'+k+'</div><div class="kpi-label">奪三振 K</div></div>'
       +'<div class="kpi-card purple"><div class="kpi-val">'+bb+'</div><div class="kpi-label">与四死球</div></div>'
       +'<div class="kpi-card"><div class="kpi-val" style="color:var(--text2)">'+h+'</div><div class="kpi-label">被安打</div></div>'
       +'</div>'
-      +'<div class="kpi-grid" style="margin-bottom:16px">'
+      +'<div class="kpi-grid wide" style="margin-bottom:8px">'
       +'<div class="kpi-card" style="border-color:rgba(245,101,101,0.3);background:rgba(245,101,101,0.06)"><div class="kpi-val" style="color:var(--red)">'+r+'</div><div class="kpi-label">失点 R</div></div>'
-      +'<div class="kpi-card gold"><div class="kpi-val" style="'+eraCls+'">'+erVal+'</div><div class="kpi-label">防御率 ERA</div></div>'
+      +'<div class="kpi-card gold"><div class="kpi-val" style="'+eraCls(eraV)+'">'+eraV+'</div><div class="kpi-label">防御率 ERA</div></div>'
+      +'<div class="kpi-card"><div class="kpi-val" style="'+whipCls(whipV)+'">'+whipV+'</div><div class="kpi-label">WHIP</div></div>'
+      +'<div class="kpi-card"><div class="kpi-val" style="color:var(--blue)">'+kbbV+'</div><div class="kpi-label">K/BB</div></div>'
+      +'</div>'
+      +'<div class="kpi-grid wide" style="margin-bottom:16px">'
+      +'<div class="kpi-card green"><div class="kpi-val" style="font-size:1.2rem">'+k7V+'</div><div class="kpi-label">奪三振率 K/7</div></div>'
+      +'<div class="kpi-card purple"><div class="kpi-val" style="font-size:1.2rem">'+bb7V+'</div><div class="kpi-label">与四死球率 BB/7</div></div>'
+      +'<div class="kpi-card"><div class="kpi-val" style="font-size:1.2rem;color:var(--text2)">'+h7V+'</div><div class="kpi-label">被安打率 H/7</div></div>'
       +'</div>';
-    // 投球バー
     var tot=o||1;
     var barHtml = '<div class="chart-wrap"><div class="chart-title">投球内訳</div>'
       +makeBar('奪三振 K',k,tot,'g')
