@@ -1701,7 +1701,7 @@ function renderPitching(){
     return (p.pitO||0)+(p.pitK||0)+(p.pitBB||0)+(p.pitH||0)+(p.pitR||0) > 0;
   });
   pitchers.sort(function(a,b){
-    return (bd[b].pitO||0) - (bd[a].pitO||0);
+    return (parseInt(bd[a].num)||999) - (parseInt(bd[b].num)||999);
   });
 
   var filterEl = document.getElementById('pitchingFilter');
@@ -1754,9 +1754,9 @@ function renderPitchingDetail(sel, pitchers){
       +'<div class="kpi-card" style="border-color:rgba(245,101,101,0.3);background:rgba(245,101,101,0.06)"><div class="kpi-val" style="color:var(--red)">'+totR+'</div><div class="kpi-label">失点 R</div></div>'
       +'</div>'
       +'<div class="kpi-grid wide" style="margin-bottom:16px">'
-      +'<div class="kpi-card green"><div class="kpi-val" style="font-size:1.2rem">'+k7V+'</div><div class="kpi-label">奪三振率 K/7</div></div>'
-      +'<div class="kpi-card purple"><div class="kpi-val" style="font-size:1.2rem">'+bb7V+'</div><div class="kpi-label">与四死球率 BB/7</div></div>'
-      +'<div class="kpi-card"><div class="kpi-val" style="font-size:1.2rem;color:var(--text2)">'+h7V+'</div><div class="kpi-label">被安打率 H/7</div></div>'
+      +'<div class="kpi-card green"><div class="kpi-val" >'+k7V+'</div><div class="kpi-label">奪三振率 K/7</div></div>'
+      +'<div class="kpi-card purple"><div class="kpi-val" >'+bb7V+'</div><div class="kpi-label">与四死球率 BB/7</div></div>'
+      +'<div class="kpi-card"><div class="kpi-val" style="color:var(--text2)">'+h7V+'</div><div class="kpi-label">被安打率 H/7</div></div>'
       +'<div class="kpi-card" style="opacity:0.3"><div class="kpi-val">—</div><div class="kpi-label"> </div></div>'
       +'</div>';
     if(rows.length===0){wrap.innerHTML=teamKpi+'<div class="empty"><div class="empty-icon">⚾</div><div class="empty-title">投手データなし</div></div>';return;}
@@ -1798,9 +1798,9 @@ function renderPitchingDetail(sel, pitchers){
       +'<div class="kpi-card" style="border-color:rgba(245,101,101,0.3);background:rgba(245,101,101,0.06)"><div class="kpi-val" style="color:var(--red)">'+r+'</div><div class="kpi-label">失点 R</div></div>'
       +'</div>'
       +'<div class="kpi-grid wide" style="margin-bottom:16px">'
-      +'<div class="kpi-card green"><div class="kpi-val" style="font-size:1.2rem">'+k7V+'</div><div class="kpi-label">奪三振率 K/7</div></div>'
-      +'<div class="kpi-card purple"><div class="kpi-val" style="font-size:1.2rem">'+bb7V+'</div><div class="kpi-label">与四死球率 BB/7</div></div>'
-      +'<div class="kpi-card"><div class="kpi-val" style="font-size:1.2rem;color:var(--text2)">'+h7V+'</div><div class="kpi-label">被安打率 H/7</div></div>'
+      +'<div class="kpi-card green"><div class="kpi-val" >'+k7V+'</div><div class="kpi-label">奪三振率 K/7</div></div>'
+      +'<div class="kpi-card purple"><div class="kpi-val" >'+bb7V+'</div><div class="kpi-label">与四死球率 BB/7</div></div>'
+      +'<div class="kpi-card"><div class="kpi-val" style="color:var(--text2)">'+h7V+'</div><div class="kpi-label">被安打率 H/7</div></div>'
       +'<div class="kpi-card" style="opacity:0.3"><div class="kpi-val">—</div><div class="kpi-label"> </div></div>'
       +'</div>';
     var tot=o||1;
