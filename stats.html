@@ -512,7 +512,7 @@ function loadData(){
     if(gameData){
       var opp = gameData.opponent || '';
       var date = gameData.gameDate || '';
-      document.getElementById('headerOpponent').textContent = opp ? 'vs ' + opp : '試合データあり';
+      // headerOpponent removed
       document.getElementById('lastUpdated').textContent = date || '記録中...';
     } else {
       document.getElementById('lastUpdated').textContent = 'データなし';
@@ -1507,7 +1507,7 @@ function buildGameData(){
 
   var opponents = targetGames.map(function(g){ return g ? g.opponent : ''; }).filter(Boolean);
   gameData = {batData:batData, opponent:opponents.join('・'), gameDate:'', _source:'excel'};
-  document.getElementById('headerOpponent').textContent = opponents.join('・') || '—';
+  // headerOpponent removed
 }
 
 // 試合フィルターUIを描画
