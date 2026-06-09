@@ -313,7 +313,14 @@ main{position:relative;z-index:1;padding:16px;padding-bottom:40px}
   <button id="importClearBtn" onclick="clearImport()" style="display:none;margin-left:auto;background:none;border:1px solid #2a3a5a;border-radius:16px;color:#4a5570;font-size:11px;padding:5px 12px;cursor:pointer">✕ クリア</button>
 </div>
 
-<div id="gameFilterBar" style="display:none;background:#0a0f1a;border-bottom:1px solid #1e2a45;padding:8px 16px;flex-direction:row;align-items:center;gap:10px"><span style="font-size:10px;color:#4a5570;font-weight:700;letter-spacing:.08em;white-space:nowrap;flex-shrink:0">試合絞込</span><select id="gameFilterSelect" onchange="selectGame(this.value)" style="background:#111827;border:1px solid #2a3a5a;border-radius:8px;color:#f0f4ff;font-size:12px;padding:6px 10px;cursor:pointer;width:300px;outline:none"></select></div>
+<div id="gameFilterBar" style="display:none;background:#0a0f1a;border-bottom:1px solid #1e2a45;padding:8px 16px;flex-direction:row;align-items:center;gap:10px;position:relative">
+  <span style="font-size:10px;color:#4a5570;font-weight:700;letter-spacing:.08em;white-space:nowrap;flex-shrink:0">試合絞込</span>
+  <div id="gameDropdownBtn" onclick="toggleGameDropdown()" style="background:#111827;border:1px solid #2a3a5a;border-radius:8px;color:#f0f4ff;font-size:12px;padding:6px 12px;cursor:pointer;min-width:200px;display:flex;align-items:center;justify-content:space-between;gap:8px;user-select:none">
+    <span id="gameDropdownLabel">全試合</span>
+    <span style="color:#4a5570;font-size:10px">▼</span>
+  </div>
+  <div id="gameDropdownMenu" style="display:none;position:absolute;top:100%;left:80px;background:#111827;border:1px solid #2a3a5a;border-radius:8px;z-index:999;min-width:280px;max-height:300px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,0.5)"></div>
+</div>
 
 <div class="tab-bar">
   <div class="tab active" onclick="switchTab('overview')" id="tab-overview">概要</div>
@@ -1420,6 +1427,9 @@ function selectGame(idx){
   selectedGame = idx;
   buildGameData();
   renderGameFilter();
+  // ドロップダウンを閉じる
+  var menu = document.getElementById('gameDropdownMenu');
+  if(menu) menu.style.display='none';
   var activePanel = panels.find(function(n){ return document.getElementById('panel-'+n).className.includes('active'); });
   switchTab(activePanel || 'overview');
 }
