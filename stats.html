@@ -313,7 +313,7 @@ main{position:relative;z-index:1;padding:16px;padding-bottom:40px}
   <button id="importClearBtn" onclick="clearImport()" style="display:none;margin-left:auto;background:none;border:1px solid #2a3a5a;border-radius:16px;color:#4a5570;font-size:11px;padding:5px 12px;cursor:pointer">✕ クリア</button>
 </div>
 
-<div id="gameFilterBar" style="display:none;background:#0a0f1a;border-bottom:1px solid var(--border);padding:8px 16px;display:none;align-items:center;gap:6px;flex-wrap:wrap;overflow-x:auto"></div>
+<div id="gameFilterBar" style="display:none;background:#0a0f1a;border-bottom:1px solid var(--border);padding:8px 16px;align-items:center;gap:6px;flex-wrap:wrap;overflow-x:auto"></div>
 
 <div class="tab-bar">
   <div class="tab active" onclick="switchTab('overview')" id="tab-overview">概要</div>
@@ -1405,9 +1405,10 @@ function renderGameFilter(){
   var bar = document.getElementById('gameFilterBar');
   if(!bar) return;
   if(gamesData.length === 0){ bar.style.display='none'; return; }
+  bar.style.display='flex';
   bar.style.display = '';
   var html = '<div style="font-size:10px;color:var(--text3);font-weight:700;letter-spacing:.08em;margin-right:8px;white-space:nowrap">試合絞込</div>';
-  html += '<div class="filter-btn'+(selectedGame==='all'?' active':'')+'" onclick="selectGame('all')" style="font-size:10px;padding:4px 10px">全試合</div>';
+  html += '<div class="filter-btn'+(selectedGame==="all"?' active':'')+'" onclick="selectGame(\'all\')" style="font-size:10px;padding:4px 10px">全試合</div>';
   gamesData.forEach(function(g, i){
     var label = (g.date||'') + ' ' + (g.opponent||'');
     html += '<div class="filter-btn'+(selectedGame==i?' active':'')+'" onclick="selectGame('+i+')" style="font-size:10px;padding:4px 10px;white-space:nowrap">'+label+'</div>';
