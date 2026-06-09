@@ -315,7 +315,7 @@ main{position:relative;z-index:1;padding:16px;padding-bottom:40px}
 
 <div id="gameFilterBar" style="display:none;background:#0a0f1a;border-bottom:1px solid #1e2a45;padding:5px 16px;display:none;align-items:center;gap:8px">
   <span style="font-size:10px;color:#4a5570;font-weight:700;white-space:nowrap">試合絞込</span>
-  <button id="gameFilterBtn" onclick="toggleGameModal()" style="background:#111827;border:1px solid #2a3a5a;border-radius:8px;color:#e8b84b;font-size:11px;font-weight:700;padding:4px 12px;cursor:pointer;outline:none" id="gameFilterBtn">全試合 ▼</button>
+  <button id="gameFilterBtn" onclick="toggleGameModal()" style="background:#111827;border:1px solid #2a3a5a;border-radius:8px;color:#e8b84b;font-size:11px;font-weight:700;padding:4px 12px;cursor:pointer;outline:none" id="gameFilterBtn">全試合 ▼</button><span id="gameCountInfo" style="margin-left:auto;color:#8b98b8;font-size:11px;font-weight:700">0試合</span>
 </div>
 <div id="gameModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;background:rgba(0,0,0,0.7)" onclick="closeGameModal()">
   <div onclick="event.stopPropagation()" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#111827;border:1px solid #2a3a5a;border-radius:12px;padding:16px;min-width:280px;max-width:400px;max-height:70vh;overflow-y:auto">
@@ -1487,3 +1487,14 @@ setInterval(function(){
 </script>
 </body>
 </html>
+
+
+function updateGameCountInfo(){
+  var el=document.getElementById('gameCountInfo');
+  if(!el) return;
+  if(typeof gamesData!=='undefined' && gamesData){
+    el.textContent = gamesData.length + '試合';
+  }
+}
+
+updateGameCountInfo();
