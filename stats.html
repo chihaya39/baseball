@@ -1056,26 +1056,23 @@ function renderPlayerDetail(sel, players){
     var bbPct = pa>0 ? bbC/pa : 0;
     function fmtPct(v){ return (v*100).toFixed(1)+'%'; }
     var kpiHtml = ''
-      // 行1: 打席PA・打数AB・盗塁SB
-      +'<div class="kpi-grid trio" style="margin-bottom:8px">'
+      // 行1: 打席PA・打数AB・三振K・四死球
+      +'<div class="kpi-grid wide" style="margin-bottom:8px">'
       +'<div class="kpi-card"><div class="kpi-val" style="color:var(--text)">'+pa+'</div><div class="kpi-label" style="color:var(--text2)">打席 PA</div></div>'
       +'<div class="kpi-card"><div class="kpi-val" style="color:var(--text)">'+ab+'</div><div class="kpi-label" style="color:var(--text2)">打数 AB</div></div>'
-      +'<div class="kpi-card"><div class="kpi-val" style="color:var(--green)">'+(bd.sb||0)+'</div><div class="kpi-label" style="color:var(--text2)">盗塁 SB</div></div>'
+      +'<div class="kpi-card"><div class="kpi-val" style="color:var(--red)">'+kC+'</div><div class="kpi-label" style="color:var(--text2)">三振 K <span style="color:var(--red);font-size:11px;margin-left:6px">'+(pa>0?fmtPct(kPct):'')+'</span></div></div>'
+      +'<div class="kpi-card"><div class="kpi-val" style="color:var(--purple)">'+bbC+'</div><div class="kpi-label" style="color:var(--text2)">四死球 <span style="color:var(--purple);font-size:11px;margin-left:6px">'+(pa>0?fmtPct(bbPct):'')+'</span></div></div>'
       +'</div>'
-      // 行2: 安打H・長打XBH・打点RBI
-      +'<div class="kpi-grid trio" style="margin-bottom:8px">'
+      // 行2: 安打H・長打XBH・打点RBI・盗塁SB
+      +'<div class="kpi-grid wide" style="margin-bottom:8px">'
       +'<div class="kpi-card green"><div class="kpi-val">'+hList.length+'</div><div class="kpi-label">安打 H</div></div>'
       +'<div class="kpi-card"><div class="kpi-val" style="color:var(--green)">'+extraList.length+'</div><div class="kpi-label" style="color:var(--text2)">長打 XBH</div></div>'
       +'<div class="kpi-card"><div class="kpi-val" style="color:var(--gold)">'+rbiC+'</div><div class="kpi-label" style="color:var(--text2)">打点 RBI</div></div>'
+      +'<div class="kpi-card"><div class="kpi-val" style="color:var(--green)">'+(bd.sb||0)+'</div><div class="kpi-label" style="color:var(--text2)">盗塁 SB</div></div>'
       +'</div>'
-      // 行3: 三振K・四死球・打率AVG
-      +'<div class="kpi-grid trio" style="margin-bottom:8px">'
-      +'<div class="kpi-card"><div class="kpi-val" style="color:var(--red)">'+kC+'</div><div class="kpi-label" style="color:var(--text2)">三振 K <span style="color:var(--red);font-size:11px;margin-left:6px">'+(pa>0?fmtPct(kPct):'')+'</span></div></div>'
-      +'<div class="kpi-card"><div class="kpi-val" style="color:var(--purple)">'+bbC+'</div><div class="kpi-label" style="color:var(--text2)">四死球 <span style="color:var(--purple);font-size:11px;margin-left:6px">'+(pa>0?fmtPct(bbPct):'')+'</span></div></div>'
+      // 行3: 打率AVG・出塁率OBP・長打率SLG・OPS
+      +'<div class="kpi-grid wide" style="margin-bottom:16px">'
       +'<div class="kpi-card gold"><div class="kpi-val">'+fmtAvg(avg)+'</div><div class="kpi-label">打率 AVG</div></div>'
-      +'</div>'
-      // 行4: 出塁率OBP・長打率SLG・OPS
-      +'<div class="kpi-grid trio" style="margin-bottom:16px">'
       +'<div class="kpi-card blue"><div class="kpi-val">'+fmtAvg(obp)+'</div><div class="kpi-label">出塁率 OBP</div></div>'
       +'<div class="kpi-card purple"><div class="kpi-val">'+fmtAvg(slg)+'</div><div class="kpi-label">長打率 SLG</div></div>'
       +'<div class="kpi-card" style="border-color:rgba(232,184,75,0.6);background:rgba(232,184,75,0.1)"><div class="kpi-val" style="color:var(--accent)">'+fmtOPS(ops)+'</div><div class="kpi-label" style="color:var(--accent)">OPS</div></div>'
