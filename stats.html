@@ -1414,14 +1414,26 @@ function renderGameFilter(){
   var bar = document.getElementById('gameFilterBar');
   if(!bar) return;
   if(gamesData.length === 0){ bar.style.display='none'; return; }
-  bar.style.display='flex';
-  bar.style.display = '';
-  var html = '<div style="font-size:10px;color:var(--text3);font-weight:700;letter-spacing:.08em;margin-right:8px;white-space:nowrap">試合絞込</div>';
-  html += '<div class="filter-btn'+(selectedGame==="all"?' active':'')+'" onclick="selectGame(\'all\')" style="font-size:10px;padding:4px 10px">全試合</div>';
+
+  // 1行だけのプルダウン表示にする
+  bar.style.display = 'flex';
+  bar.style.alignItems = 'center';
+  bar.style.gap = '8px';
+  bar.style.padding = '6px 16px';
+  bar.style.overflow = 'visible';
+
+  var html = '';
+  html += '<label for="gameSelect" style="font-size:10px;color:var(--text3);font-weight:700;letter-spacing:.08em;white-space:nowrap">試合絞込</label>';
+  html += '<select id="gameSelect" onchange="selectGame(this.value)" '
+       + 'style="width:min(520px,calc(100vw - 110px));max-width:520px;background:#111827;border:1px solid #2a3a5a;border-radius:10px;color:#e8b84b;font-size:12px;font-weight:700;padding:7px 12px;outline:none;cursor:pointer">';
+  html += '<option value="all"' + (selectedGame === 'all' ? ' selected' : '') + '>全試合</option>';
+
   gamesData.forEach(function(g, i){
-    var label = (g.date||'') + ' ' + (g.opponent||'');
-    html += '<div class="filter-btn'+(selectedGame==i?' active':'')+'" onclick="selectGame('+i+')" style="font-size:10px;padding:4px 10px;white-space:nowrap">'+label+'</div>';
+    var label = (g.date ? g.date + ' ' : '') + (g.opponent || '対戦相手なし');
+    html += '<option value="' + i + '"' + (String(selectedGame) === String(i) ? ' selected' : '') + '>' + label + '</option>';
   });
+
+  html += '</select>';
   bar.innerHTML = html;
 }
 
@@ -1429,6 +1441,13 @@ function selectGame(idx){
   selectedGame = idx;
   buildGameData();
   renderGameFilter();
+
+  if(selectedGame === 'all'){
+    document.getElementById('lastUpdated').textContent = '全試合を表示中';
+  } else {
+    var g = gamesData[parseInt(selectedGame)];
+    document.getElementById('lastUpdated').textContent = g && g.date ? g.date : '選択試合を表示中';
+  }
 
   var activePanel = panels.find(function(n){ return document.getElementById('panel-'+n).className.includes('active'); });
   switchTab(activePanel || 'overview');
