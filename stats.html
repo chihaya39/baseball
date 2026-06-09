@@ -294,7 +294,7 @@ main{position:relative;z-index:1;padding:16px;padding-bottom:40px}
 
 <div class="header">
   <div class="header-brand">
-    <div class="header-title">BATTING STATS</div>
+    <div class="header-title">NAGATSUKA STATS</div>
     <div class="header-sub" id="headerTeam">長束中</div>
   </div>
   <div style="text-align:right">
@@ -328,9 +328,9 @@ main{position:relative;z-index:1;padding:16px;padding-bottom:40px}
   <div class="tab active" onclick="switchTab('overview')" id="tab-overview">概要</div>
   <div class="tab" onclick="switchTab('direction')" id="tab-direction">方向・打球</div>
   <div class="tab" onclick="switchTab('players')" id="tab-players">選手別</div>
-  <div class="tab" onclick="switchTab('log')" id="tab-log">打席ログ</div>
   <div class="tab" onclick="switchTab('fielding')" id="tab-fielding">野手</div>
   <div class="tab" onclick="switchTab('pitching')" id="tab-pitching">投手</div>
+  <div class="tab" onclick="switchTab('log')" id="tab-log">打席ログ</div>
 </div>
 
 <main>
@@ -482,28 +482,9 @@ main{position:relative;z-index:1;padding:16px;padding-bottom:40px}
 
 <!-- ========== PITCHING TAB ========== -->
 <div class="panel" id="panel-pitching">
-  <div class="sec-label">チーム投手</div>
-  <div class="kpi-grid wide" style="margin-bottom:8px">
-    <div class="kpi-card blue"><div class="kpi-val" id="pitIP">0</div><div class="kpi-label">投球回 IP</div></div>
-    <div class="kpi-card green"><div class="kpi-val" id="pitK">0</div><div class="kpi-label">奪三振 K</div></div>
-    <div class="kpi-card purple"><div class="kpi-val" id="pitBB">0</div><div class="kpi-label">与四死球</div></div>
-    <div class="kpi-card"><div class="kpi-val" style="color:var(--text2)" id="pitH">0</div><div class="kpi-label">被安打</div></div>
-  </div>
-  <div class="kpi-grid" style="margin-bottom:16px">
-    <div class="kpi-card" style="border-color:rgba(245,101,101,0.3);background:rgba(245,101,101,0.06)"><div class="kpi-val" style="color:var(--red)" id="pitR">0</div><div class="kpi-label">失点 R</div></div>
-    <div class="kpi-card gold"><div class="kpi-val" id="pitERA">-</div><div class="kpi-label">防御率 ERA</div></div>
-  </div>
-  <div class="sec-label">選手別投手成績</div>
-  <div class="player-table-wrap">
-    <table class="player-table">
-      <thead>
-        <tr>
-          <th>#</th><th style="text-align:left">名前</th><th>回</th><th>K</th><th>BB</th><th>H</th><th>R</th><th>防御率</th>
-        </tr>
-      </thead>
-      <tbody id="pitchingBody"></tbody>
-    </table>
-  </div>
+  <div class="sec-label">選手フィルター</div>
+  <div class="filter-row" id="pitchingFilter"></div>
+  <div id="pitchingDetailWrap"></div>
 </div>
 
 </main>
@@ -1180,7 +1161,30 @@ function renderPlayerDetail(sel, players){
         +errBarHtml2;
     }
 
-    wrap.innerHTML = kpiHtml + dirBarHtml + typeBarHtml + fldHtml + logHtml;
+    // 守備記録ログ
+    var fldLogHtml = '';
+    if(fldTot > 0){
+      var fldLogItems = [];
+      if(fldO)  fldLogItems.push({label:'アウト関与', count:fldO, cls:'result-hit'});
+      if(fldN)  fldLogItems.push({label:'関与・非アウト', count:fldN, cls:''});
+      if(fldEc) fldLogItems.push({label:'捕球エラー Ec', count:fldEc, cls:'result-k'});
+      if(fldEt) fldLogItems.push({label:'送球エラー Et', count:fldEt, cls:'result-k'});
+      if(fldEj) fldLogItems.push({label:'判断エラー Ej', count:fldEj, cls:'result-k'});
+      fldLogHtml = '<div class="game-log-wrap" style="margin-top:12px">'
+        +'<div class="game-log-header"><div class="game-log-title">守備記録</div></div>'
+        +'<div class="game-log-body">';
+      fldLogItems.forEach(function(item, i){
+        fldLogHtml += '<div class="at-bat-row">'
+          +'<div class="ab-order">'+(i+1)+'</div>'
+          +'<div class="ab-code">🧤</div>'
+          +'<div class="ab-result"><span class="'+item.cls+'">'+item.label+'</span>'
+          +'<span style="color:var(--text2);font-size:11px;margin-left:8px">× '+item.count+'</span>'
+          +'</div></div>';
+      });
+      fldLogHtml += '</div></div>';
+    }
+
+    wrap.innerHTML = kpiHtml + dirBarHtml + typeBarHtml + fldHtml + logHtml + fldLogHtml;
   }
 }
 
@@ -1536,6 +1540,9 @@ function renderGameFilter(){
 
 function selectGame(idx){
   selectedGame = idx;
+  selectedPlayer = 'all';
+  selectedFielder = 'all';
+  selectedPitcher = 'all';
   buildGameData();
   renderGameFilter();
 
@@ -1678,56 +1685,111 @@ function renderFieldingDetail(sel, players){
 // ============================================================
 // PITCHING
 // ============================================================
+function toIP(outs){
+  var inn = Math.floor(outs/3);
+  var rem = outs%3;
+  return rem===0 ? String(inn) : inn+'.'+rem;
+}
+function calcERA(r, outs){
+  if(outs===0) return '-';
+  return (r / outs * 27).toFixed(2);
+}
+
+var selectedPitcher = 'all';
+
 function renderPitching(){
   var bd = gameData.batData || {};
-  var totO=0, totK=0, totBB=0, totH=0, totR=0;
-  var rows = [];
-  Object.keys(bd).forEach(function(name){
+  var pitchers = Object.keys(bd).filter(function(name){
     var p = bd[name];
-    var o=p.pitO||0, k=p.pitK||0, bb=p.pitBB||0, h=p.pitH||0, r=p.pitR||0;
-    if(o+k+bb+h+r === 0) return;
-    totO+=o; totK+=k; totBB+=bb; totH+=h; totR+=r;
-    rows.push({name:name, num:p.num||'', o:o, k:k, bb:bb, h:h, r:r});
+    return (p.pitO||0)+(p.pitK||0)+(p.pitBB||0)+(p.pitH||0)+(p.pitR||0) > 0;
   });
-  rows.sort(function(a,b){ return b.o - a.o; });
+  pitchers.sort(function(a,b){
+    return (bd[b].pitO||0) - (bd[a].pitO||0);
+  });
 
-  // 投球回：アウト数 / 3（例：7アウト → 2.1回）
-  function toIP(outs){
-    var inn = Math.floor(outs/3);
-    var rem = outs%3;
-    return rem===0 ? String(inn) : inn+'.'+rem;
-  }
-  function era(r, outs){
-    if(outs===0) return '-';
-    return (r / outs * 27).toFixed(2); // 9回換算
-  }
+  var filterEl = document.getElementById('pitchingFilter');
+  var html = '<div class="filter-btn'+(selectedPitcher==='all'?' active':'')+'" onclick="selectPitcher(\'all\')">全体</div>';
+  pitchers.forEach(function(name){
+    var p = bd[name];
+    var lbl = (p.num ? '#'+p.num+' ' : '') + name;
+    html += '<div class="filter-btn'+(selectedPitcher===name?' active':'')+'" onclick="selectPitcher(\''+name+'\')">' + lbl + '</div>';
+  });
+  filterEl.innerHTML = html;
+  renderPitchingDetail(selectedPitcher, pitchers);
+}
 
-  document.getElementById('pitIP').textContent  = toIP(totO);
-  document.getElementById('pitK').textContent   = totK;
-  document.getElementById('pitBB').textContent  = totBB;
-  document.getElementById('pitH').textContent   = totH;
-  document.getElementById('pitR').textContent   = totR;
-  document.getElementById('pitERA').textContent = era(totR, totO);
+function selectPitcher(name){
+  selectedPitcher = name;
+  renderPitching();
+}
 
-  var tbody = document.getElementById('pitchingBody');
-  if(rows.length === 0){
-    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:20px">投手データなし</td></tr>';
-    return;
+function renderPitchingDetail(sel, pitchers){
+  var bd = gameData.batData || {};
+  var wrap = document.getElementById('pitchingDetailWrap');
+
+  if(sel === 'all'){
+    var totO=0,totK=0,totBB=0,totH=0,totR=0;
+    var rows = pitchers.map(function(name){
+      var p = bd[name];
+      var o=p.pitO||0,k=p.pitK||0,bb=p.pitBB||0,h=p.pitH||0,r=p.pitR||0;
+      totO+=o; totK+=k; totBB+=bb; totH+=h; totR+=r;
+      return {name:name, num:p.num||'', o:o, k:k, bb:bb, h:h, r:r};
+    });
+    var teamKpi = '<div class="kpi-grid wide" style="margin-bottom:8px">'
+      +'<div class="kpi-card blue"><div class="kpi-val">'+toIP(totO)+'</div><div class="kpi-label">投球回 IP</div></div>'
+      +'<div class="kpi-card green"><div class="kpi-val">'+totK+'</div><div class="kpi-label">奪三振 K</div></div>'
+      +'<div class="kpi-card purple"><div class="kpi-val">'+totBB+'</div><div class="kpi-label">与四死球</div></div>'
+      +'<div class="kpi-card"><div class="kpi-val" style="color:var(--text2)">'+totH+'</div><div class="kpi-label">被安打</div></div>'
+      +'</div>'
+      +'<div class="kpi-grid" style="margin-bottom:16px">'
+      +'<div class="kpi-card" style="border-color:rgba(245,101,101,0.3);background:rgba(245,101,101,0.06)"><div class="kpi-val" style="color:var(--red)">'+totR+'</div><div class="kpi-label">失点 R</div></div>'
+      +'<div class="kpi-card gold"><div class="kpi-val">'+calcERA(totR,totO)+'</div><div class="kpi-label">防御率 ERA</div></div>'
+      +'</div>';
+    if(rows.length===0){wrap.innerHTML=teamKpi+'<div class="empty"><div class="empty-icon">⚾</div><div class="empty-title">投手データなし</div></div>';return;}
+    var tableRows = rows.map(function(r){
+      var erVal=calcERA(r.r,r.o);
+      var eraCls=erVal==='-'?'color:var(--text3)':parseFloat(erVal)<3?'color:var(--green);font-weight:700':parseFloat(erVal)<5?'color:var(--gold)':'color:var(--red)';
+      return '<tr>'
+        +'<td><span class="player-num">'+(r.num?'#'+r.num:'')+'</span></td>'
+        +'<td style="text-align:left"><span class="player-name">'+r.name+'</span></td>'
+        +'<td style="color:var(--blue);font-weight:700">'+toIP(r.o)+'</td>'
+        +'<td style="color:var(--green)">'+r.k+'</td>'
+        +'<td style="color:var(--purple)">'+r.bb+'</td>'
+        +'<td style="color:var(--text2)">'+r.h+'</td>'
+        +'<td style="color:var(--red)">'+r.r+'</td>'
+        +'<td style="'+eraCls+'">'+erVal+'</td>'
+        +'</tr>';
+    }).join('');
+    wrap.innerHTML = teamKpi
+      +'<div class="player-table-wrap"><table class="player-table">'
+      +'<thead><tr><th>#</th><th style="text-align:left">名前</th><th>回</th><th>K</th><th>BB</th><th>H</th><th>R</th><th>防御率</th></tr></thead>'
+      +'<tbody>'+tableRows+'</tbody></table></div>';
+  } else {
+    var p = bd[sel];
+    if(!p){wrap.innerHTML='<div class="empty"><div class="empty-icon">⚾</div><div class="empty-title">データなし</div></div>';return;}
+    var o=p.pitO||0,k=p.pitK||0,bb=p.pitBB||0,h=p.pitH||0,r=p.pitR||0;
+    var erVal=calcERA(r,o);
+    var eraCls=erVal==='-'?'color:var(--text3)':parseFloat(erVal)<3?'color:var(--green);font-weight:700':parseFloat(erVal)<5?'color:var(--gold)':'color:var(--red)';
+    var kpiHtml = '<div class="kpi-grid wide" style="margin-bottom:8px">'
+      +'<div class="kpi-card blue"><div class="kpi-val">'+toIP(o)+'</div><div class="kpi-label">投球回 IP</div></div>'
+      +'<div class="kpi-card green"><div class="kpi-val">'+k+'</div><div class="kpi-label">奪三振 K</div></div>'
+      +'<div class="kpi-card purple"><div class="kpi-val">'+bb+'</div><div class="kpi-label">与四死球</div></div>'
+      +'<div class="kpi-card"><div class="kpi-val" style="color:var(--text2)">'+h+'</div><div class="kpi-label">被安打</div></div>'
+      +'</div>'
+      +'<div class="kpi-grid" style="margin-bottom:16px">'
+      +'<div class="kpi-card" style="border-color:rgba(245,101,101,0.3);background:rgba(245,101,101,0.06)"><div class="kpi-val" style="color:var(--red)">'+r+'</div><div class="kpi-label">失点 R</div></div>'
+      +'<div class="kpi-card gold"><div class="kpi-val" style="'+eraCls+'">'+erVal+'</div><div class="kpi-label">防御率 ERA</div></div>'
+      +'</div>';
+    // 投球バー
+    var tot=o||1;
+    var barHtml = '<div class="chart-wrap"><div class="chart-title">投球内訳</div>'
+      +makeBar('奪三振 K',k,tot,'g')
+      +makeBar('与四死球 BB',bb,tot,'p')
+      +makeBar('被安打 H',h,tot,'gray')
+      +makeBar('失点 R',r,tot,'r')
+      +'</div>';
+    wrap.innerHTML = kpiHtml + barHtml;
   }
-  tbody.innerHTML = rows.map(function(r){
-    var erVal = era(r.r, r.o);
-    var eraCls = erVal==='-' ? 'color:var(--text3)' : parseFloat(erVal)<3 ? 'color:var(--green);font-weight:700' : parseFloat(erVal)<5 ? 'color:var(--gold)' : 'color:var(--red)';
-    return '<tr>'
-      +'<td><span class="player-num">'+r.num+'</span></td>'
-      +'<td><span class="player-name">'+r.name+'</span></td>'
-      +'<td style="color:var(--blue);font-weight:700">'+toIP(r.o)+'</td>'
-      +'<td style="color:var(--green)">'+r.k+'</td>'
-      +'<td style="color:var(--purple)">'+r.bb+'</td>'
-      +'<td style="color:var(--text2)">'+r.h+'</td>'
-      +'<td style="color:var(--red)">'+r.r+'</td>'
-      +'<td style="'+eraCls+'">'+erVal+'</td>'
-      +'</tr>';
-  }).join('');
 }
 
 // ============================================================
