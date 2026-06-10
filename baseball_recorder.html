@@ -1924,6 +1924,52 @@ function exportExcel(){
     }); R2++;
   });
 
+  // ===== Sheet 3: 記録入力（stats.html用） =====
+  var ws3 = wb.addWorksheet('記録入力');
+  ws3.columns=[{width:12},{width:14},{width:6},{width:8},{width:16},{width:10},{width:24},{width:16},{width:16},{width:8},{width:8},{width:8},{width:8},{width:8}];
+
+  function applyCell3(r,c,v,opts){
+    opts = opts||{};
+    var cl=ws3.getCell(r,c); cl.value=v;
+    if(opts.bg) cl.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF'+opts.bg}};
+    cl.font={name:'Meiryo UI',size:opts.sz||10,bold:!!opts.bold,color:{argb:'FF'+(opts.ft||'1C2833')}};
+    cl.alignment={horizontal:opts.align||'left',vertical:'middle'};
+  }
+
+  var R3=1;
+  // ヘッダー行
+  ['試合日','対戦相手','打順','背番号','名前','ポジション','打撃記録','走塁記録','守備記録','O(投)','K(投)','BB/HBP(投)','H(投)','R(投)'].forEach(function(h,i){
+    applyCell3(R3,i+1,h,{bg:'2C3E50',ft:'FFFFFF',bold:true,sz:9,align:'center'});
+  }); R3++;
+
+  // データ行
+  var allPlayers3=[];
+  batOrder.forEach(function(o){ allPlayers3.push({num:o.num, order:o.order, isSub:false}); });
+  batSubPlayers.forEach(function(p){ allPlayers3.push({num:p.num, order:'代', isSub:true}); });
+  Object.keys(batData).forEach(function(num){
+    if(!allPlayers3.find(function(x){return x.num===num;}))
+      allPlayers3.push({num:num, order:'-', isSub:false});
+  });
+
+  allPlayers3.forEach(function(p){
+    var bat=batData[p.num]||{results:[]};
+    var run=runData[p.num]; var fld=fldData[p.num]; var pit=pitData[p.num];
+    var batStr=bat.results.join(',');
+    var runArr=[]; if(run)['SB+','SB-','PO','WP','PB'].forEach(function(k){for(var i=0;i<(run[k]||0);i++)runArr.push(k);});
+    var fldArr=[]; if(fld)['O','N','Ec','Et','Ej'].forEach(function(k){for(var i=0;i<(fld[k]||0);i++)fldArr.push(k);});
+    var pitO='',pitK='',pitBB='',pitH='',pitR='';
+    if(pit&&(pit.O+pit.K+(pit.BB||0)+(pit.HBP||0)+pit.H+pit.R)>0){
+      pitO=pit.O; pitK=pit.K; pitBB=(pit.BB||0)+(pit.HBP||0); pitH=pit.H; pitR=pit.R;
+    }
+    if(!batStr&&!runArr.length&&!fldArr.length&&!pitO) return;
+    var name=getMasterName(p.num);
+    var mst=master.find(function(x){return x.num===p.num;})||{};
+    var pos=mst.pos||'';
+    [date,opp,p.isSub?'代':p.order,p.num,name,pos,batStr,runArr.join(','),fldArr.join(','),pitO,pitK,pitBB,pitH,pitR].forEach(function(v,i){
+      applyCell3(R3,i+1,v,{sz:10,align:i<6?'left':'center'});
+    }); R3++;
+  });
+
   var fn='試合記録_'+(date||'記録')+'_'+(opp||'試合')+'.xlsx';
   wb.xlsx.writeBuffer().then(function(buf){
     var blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
