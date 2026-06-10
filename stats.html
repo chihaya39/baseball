@@ -816,6 +816,12 @@ function renderOverview(){
   document.getElementById('ovFldN').textContent = fldN;
   document.getElementById('ovFldErate').textContent = fldTot>0 ? (fldE/fldTot*100).toFixed(1)+'%' : '-';
 
+  // 守備評価
+  if(fldTot > 0){
+    var eRate = fldE/fldTot*100;
+    setCardEval('ovFldErate', eRate<=5?'good':eRate<=10?'mid':'bad', eRate<=5?'✓ 堅守':eRate<=10?'△ 平均的':'✗ 要改善');
+  }
+
   // 投手集計
   var pitO=0, pitK=0, pitBB=0, pitH=0, pitR=0;
   Object.keys(gameData.batData).forEach(function(name){
@@ -834,6 +840,16 @@ function renderOverview(){
   document.getElementById('ovPitK7').textContent   = pitO>0 ? (pitK/pitO*21).toFixed(2) : '-';
   document.getElementById('ovPitBB7').textContent  = pitO>0 ? (pitBB/pitO*21).toFixed(2) : '-';
   document.getElementById('ovPitH7').textContent   = pitO>0 ? (pitH/pitO*21).toFixed(2) : '-';
+
+  // 投手評価
+  if(pitO > 0){
+    var eraV2  = parseFloat(calcERA(pitR, pitO));
+    var whipV2 = (pitBB+pitH)/(pitO/3);
+    var kbbV2  = pitBB>0 ? pitK/pitBB : null;
+    setCardEval('ovPitERA',  eraV2<=3?'good':eraV2<=5?'mid':'bad',   eraV2<=3?'✓ 優秀':eraV2<=5?'△ 平均的':'✗ 要改善');
+    setCardEval('ovPitWHIP', whipV2<=1.2?'good':whipV2<=1.6?'mid':'bad', whipV2<=1.2?'✓ 優秀':whipV2<=1.6?'△ 平均的':'✗ 要改善');
+    if(kbbV2!==null) setCardEval('ovPitKBB', kbbV2>=2?'good':kbbV2>=1?'mid':'bad', kbbV2>=2?'✓ 優秀':kbbV2>=1?'△ 平均的':'✗ 要改善');
+  }
 
   // 打球種別バー
   var gCount = parsed.filter(function(x){return x.p.type==='G';}).length;
