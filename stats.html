@@ -1570,6 +1570,18 @@ function doImport(file){
 function buildGameData(){
   var batData = {};
   var targetGames = selectedGame === 'all' ? gamesData : [gamesData[parseInt(selectedGame)]];
+
+  // 全試合時：最新試合（配列の最後）の背番号をマスタとして使う
+  var latestNumMap = {};
+  if(selectedGame === 'all'){
+    gamesData.forEach(function(g){
+      if(!g) return;
+      Object.keys(g.batData).forEach(function(name){
+        latestNumMap[name] = g.batData[name].num;
+      });
+    });
+  }
+
   targetGames.forEach(function(g){
     if(!g) return;
     Object.keys(g.batData).forEach(function(name){
@@ -1579,7 +1591,7 @@ function buildGameData(){
                          fldO:0, fldN:0, fldEc:0, fldEt:0, fldEj:0,
                          pitO:0, pitK:0, pitBB:0, pitH:0, pitR:0};
       }
-      batData[name].num = src.num;
+      batData[name].num = selectedGame === 'all' ? (latestNumMap[name]||src.num) : src.num;
       src.results.forEach(function(r){ batData[name].results.push(r); });
       batData[name].sb   = (batData[name].sb||0)   + (src.sb||0);
       batData[name].sbo  = (batData[name].sbo||0)  + (src.sbo||0);
