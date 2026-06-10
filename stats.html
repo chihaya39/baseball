@@ -338,29 +338,51 @@ main{position:relative;z-index:1;padding:16px;padding-bottom:40px}
 <!-- ========== OVERVIEW TAB ========== -->
 <div class="panel active" id="panel-overview">
   <div class="sec-label">チーム打撃</div>
-  <div class="kpi-grid" style="margin-bottom:8px">
+  <div class="kpi-grid wide" style="margin-bottom:8px">
     <div class="kpi-card"><div class="kpi-val" style="color:var(--text)" id="kpiPA">0</div><div class="kpi-label" style="color:var(--text2)">打席 PA</div></div>
     <div class="kpi-card"><div class="kpi-val" style="color:var(--text)" id="kpiAB">0</div><div class="kpi-label" style="color:var(--text2)">打数 AB</div></div>
-  </div>
-  <div class="kpi-grid" style="margin-bottom:8px">
-    <div class="kpi-card green"><div class="kpi-val" id="kpiH">0</div><div class="kpi-label">安打 H</div></div>
-    <div class="kpi-card"><div class="kpi-val" style="color:var(--green)" id="kpiExtra">0</div><div class="kpi-label" style="color:var(--text2)">長打 XBH</div></div>
-  </div>
-  <div class="kpi-grid" style="margin-bottom:8px">
-    <div class="kpi-card"><div class="kpi-val" style="color:var(--gold)" id="kpiRBI">0</div><div class="kpi-label" style="color:var(--text2)">打点 RBI</div></div>
-    <div class="kpi-card"><div class="kpi-val" style="color:var(--green)" id="kpiSB">0</div><div class="kpi-label" style="color:var(--text2)">盗塁 SB</div></div>
-  </div>
-  <div class="kpi-grid" style="margin-bottom:8px">
     <div class="kpi-card"><div class="kpi-val" style="color:var(--red)" id="kpiK">0</div><div class="kpi-label" style="color:var(--text2)">三振 K <span id="kpiKpct" style="color:var(--red);font-size:11px;margin-left:6px"></span></div></div>
     <div class="kpi-card"><div class="kpi-val" style="color:var(--purple)" id="kpiBB">0</div><div class="kpi-label" style="color:var(--text2)">四死球 <span id="kpiBBpct" style="color:var(--purple);font-size:11px;margin-left:6px"></span></div></div>
   </div>
-  <div class="kpi-grid" style="margin-bottom:8px">
+  <div class="kpi-grid wide" style="margin-bottom:8px">
+    <div class="kpi-card green"><div class="kpi-val" id="kpiH">0</div><div class="kpi-label">安打 H</div></div>
+    <div class="kpi-card"><div class="kpi-val" style="color:var(--green)" id="kpiExtra">0</div><div class="kpi-label" style="color:var(--text2)">長打 XBH</div></div>
+    <div class="kpi-card"><div class="kpi-val" style="color:var(--gold)" id="kpiRBI">0</div><div class="kpi-label" style="color:var(--text2)">打点 RBI</div></div>
+    <div class="kpi-card"><div class="kpi-val" style="color:var(--green)" id="kpiSB">0</div><div class="kpi-label" style="color:var(--text2)">盗塁 SB</div></div>
+  </div>
+  <div class="kpi-grid wide" style="margin-bottom:16px">
     <div class="kpi-card gold"><div class="kpi-val" id="kpiAvg">.---</div><div class="kpi-label">打率 AVG</div></div>
     <div class="kpi-card blue"><div class="kpi-val" id="kpiOBP">.---</div><div class="kpi-label">出塁率 OBP</div></div>
-  </div>
-  <div class="kpi-grid" style="margin-bottom:16px">
     <div class="kpi-card purple"><div class="kpi-val" id="kpiSLG">.---</div><div class="kpi-label">長打率 SLG</div></div>
     <div class="kpi-card" style="border-color:rgba(232,184,75,0.6);background:rgba(232,184,75,0.1)"><div class="kpi-val" style="color:var(--accent)" id="kpiOPS">.---</div><div class="kpi-label" style="color:var(--accent)">OPS</div></div>
+  </div>
+
+  <div class="sec-label">チーム守備</div>
+  <div class="kpi-grid wide" style="margin-bottom:16px">
+    <div class="kpi-card green"><div class="kpi-val" id="ovFldO">0</div><div class="kpi-label">アウト関与</div></div>
+    <div class="kpi-card" style="border-color:rgba(245,101,101,0.3);background:rgba(245,101,101,0.06)"><div class="kpi-val" style="color:var(--red)" id="ovFldE">0</div><div class="kpi-label">エラー計</div></div>
+    <div class="kpi-card"><div class="kpi-val" style="color:var(--text2)" id="ovFldN">0</div><div class="kpi-label">関与・非アウト N</div></div>
+    <div class="kpi-card purple"><div class="kpi-val" id="ovFldErate">-</div><div class="kpi-label">エラー率</div></div>
+  </div>
+
+  <div class="sec-label">チーム投手</div>
+  <div class="kpi-grid wide" style="margin-bottom:8px">
+    <div class="kpi-card blue"><div class="kpi-val" id="ovPitIP">0</div><div class="kpi-label">投球回 IP</div></div>
+    <div class="kpi-card gold"><div class="kpi-val" id="ovPitERA">-</div><div class="kpi-label">防御率 ERA</div></div>
+    <div class="kpi-card"><div class="kpi-val" id="ovPitWHIP">-</div><div class="kpi-label">WHIP</div></div>
+    <div class="kpi-card"><div class="kpi-val" style="color:var(--blue)" id="ovPitKBB">-</div><div class="kpi-label">K/BB</div></div>
+  </div>
+  <div class="kpi-grid wide" style="margin-bottom:8px">
+    <div class="kpi-card green"><div class="kpi-val" id="ovPitK">0</div><div class="kpi-label">奪三振 K</div></div>
+    <div class="kpi-card purple"><div class="kpi-val" id="ovPitBB">0</div><div class="kpi-label">与四死球 BB</div></div>
+    <div class="kpi-card"><div class="kpi-val" style="color:var(--text2)" id="ovPitH">0</div><div class="kpi-label">被安打 H</div></div>
+    <div class="kpi-card" style="border-color:rgba(245,101,101,0.3);background:rgba(245,101,101,0.06)"><div class="kpi-val" style="color:var(--red)" id="ovPitR">0</div><div class="kpi-label">失点 R</div></div>
+  </div>
+  <div class="kpi-grid wide" style="margin-bottom:16px">
+    <div class="kpi-card green"><div class="kpi-val" id="ovPitK7">-</div><div class="kpi-label">奪三振率 K/7</div></div>
+    <div class="kpi-card purple"><div class="kpi-val" id="ovPitBB7">-</div><div class="kpi-label">与四死球率 BB/7</div></div>
+    <div class="kpi-card"><div class="kpi-val" style="color:var(--text2)" id="ovPitH7">-</div><div class="kpi-label">被安打率 H/7</div></div>
+    <div class="kpi-card" style="opacity:0.3"><div class="kpi-val">—</div><div class="kpi-label"> </div></div>
   </div>
 
   <div class="sec-label">三振 / 出塁の内訳</div>
@@ -703,6 +725,38 @@ function renderOverview(){
   document.getElementById('kpiSB').textContent = totalSB;
   document.getElementById('kpiKpct').textContent = pa>0 ? (k/pa*100).toFixed(1)+'%' : '';
   document.getElementById('kpiBBpct').textContent = pa>0 ? (bb/pa*100).toFixed(1)+'%' : '';
+
+  // 守備集計
+  var fldO=0, fldN=0, fldEc=0, fldEt=0, fldEj=0;
+  Object.keys(gameData.batData).forEach(function(name){
+    var p = gameData.batData[name];
+    fldO+=(p.fldO||0); fldN+=(p.fldN||0);
+    fldEc+=(p.fldEc||0); fldEt+=(p.fldEt||0); fldEj+=(p.fldEj||0);
+  });
+  var fldE=fldEc+fldEt+fldEj, fldTot=fldO+fldN+fldE;
+  document.getElementById('ovFldO').textContent = fldO;
+  document.getElementById('ovFldE').textContent = fldE;
+  document.getElementById('ovFldN').textContent = fldN;
+  document.getElementById('ovFldErate').textContent = fldTot>0 ? (fldE/fldTot*100).toFixed(1)+'%' : '-';
+
+  // 投手集計
+  var pitO=0, pitK=0, pitBB=0, pitH=0, pitR=0;
+  Object.keys(gameData.batData).forEach(function(name){
+    var p = gameData.batData[name];
+    pitO+=(p.pitO||0); pitK+=(p.pitK||0); pitBB+=(p.pitBB||0);
+    pitH+=(p.pitH||0); pitR+=(p.pitR||0);
+  });
+  document.getElementById('ovPitIP').textContent  = toIP(pitO);
+  document.getElementById('ovPitK').textContent   = pitK;
+  document.getElementById('ovPitBB').textContent  = pitBB;
+  document.getElementById('ovPitH').textContent   = pitH;
+  document.getElementById('ovPitR').textContent   = pitR;
+  document.getElementById('ovPitERA').textContent  = calcERA(pitR, pitO);
+  document.getElementById('ovPitWHIP').textContent = pitO>0 ? ((pitBB+pitH)/(pitO/3)).toFixed(2) : '-';
+  document.getElementById('ovPitKBB').textContent  = pitBB>0 ? (pitK/pitBB).toFixed(2) : '-';
+  document.getElementById('ovPitK7').textContent   = pitO>0 ? (pitK/pitO*21).toFixed(2) : '-';
+  document.getElementById('ovPitBB7').textContent  = pitO>0 ? (pitBB/pitO*21).toFixed(2) : '-';
+  document.getElementById('ovPitH7').textContent   = pitO>0 ? (pitH/pitO*21).toFixed(2) : '-';
 
   // 打球種別バー
   var gCount = parsed.filter(function(x){return x.p.type==='G';}).length;
