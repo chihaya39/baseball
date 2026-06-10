@@ -773,35 +773,9 @@ function renderOverview(){
   document.getElementById('kpiBBpct').textContent = pa>0 ? (bb/pa*100).toFixed(1)+'%' : '';
 
   // KPIカード 枠色＋コメント評価
-  function setCardEval(id, grade, comment){
-    var card = document.getElementById(id).closest('.kpi-card');
-    if(!card) return;
-    var colors = {good:'#3ecf8e', mid:'#e8b84b', bad:'#f56565'};
-    var c = colors[grade] || 'transparent';
-    card.style.borderColor = c;
-    card.style.boxShadow = '0 0 0 1px '+c+'22';
-    var existing = card.querySelector('.kpi-comment');
-    if(existing) existing.remove();
-    if(comment){
-      var el = document.createElement('div');
-      el.className = 'kpi-comment';
-      el.style.color = c;
-      el.textContent = comment;
-      card.appendChild(el);
-    }
-  }
+  // setCardEval → グローバルに移動済み
 
-  if(pa > 0){
-    var kPct = k/pa*100, bbPct2 = bb/pa*100;
-    setCardEval('kpiK',   kPct<=10?'good':kPct<=20?'mid':'bad',   kPct<=10?'✓ 少ない':kPct<=20?'△ やや多め':'✗ 多め');
-    setCardEval('kpiBB',  bbPct2>=15?'good':bbPct2>=10?'mid':'bad', bbPct2>=15?'✓ 選球眼良好':bbPct2>=10?'△ 平均的':'✗ 少ない');
-  }
-  if(ab > 0){
-    setCardEval('kpiAvg', avg>=.280?'good':avg>=.220?'mid':'bad', avg>=.280?'✓ 優秀':avg>=.220?'△ 平均的':'✗ 低め');
-    setCardEval('kpiOBP', obp>=.350?'good':obp>=.280?'mid':'bad', obp>=.350?'✓ 優秀':obp>=.280?'△ 平均的':'✗ 低め');
-    setCardEval('kpiSLG', slg>=.400?'good':slg>=.300?'mid':'bad', slg>=.400?'✓ 優秀':slg>=.300?'△ 平均的':'✗ 低め');
-    setCardEval('kpiOPS', ops>=.750?'good':ops>=.650?'mid':'bad', ops>=.750?'✓ 優秀':ops>=.650?'△ 平均的':'✗ 低め');
-  }
+  evalBatting(pa, ab, k, bb, avg, obp, slg, ops, '');
 
   // 守備集計
   var fldO=0, fldN=0, fldEc=0, fldEt=0, fldEj=0;
@@ -894,6 +868,39 @@ function renderOverview(){
     {label:'被安打 H',     val:pitH,                  color:'#f6ad55'},
     {label:'その他アウト', val:Math.max(0,pitO-pitK), color:'#63b3ed'}
   ]);
+}
+
+function setCardEval(id, grade, comment){
+  var card = document.getElementById(id) ? document.getElementById(id).closest('.kpi-card') : null;
+  if(!card) return;
+  var colors = {good:'#3ecf8e', mid:'#e8b84b', bad:'#f56565'};
+  var c = colors[grade] || 'transparent';
+  card.style.borderColor = c;
+  card.style.boxShadow = '0 0 0 1px '+c+'22';
+  var existing = card.querySelector('.kpi-comment');
+  if(existing) existing.remove();
+  if(comment){
+    var el = document.createElement('div');
+    el.className = 'kpi-comment';
+    el.style.color = c;
+    el.textContent = comment;
+    card.appendChild(el);
+  }
+}
+
+function evalBatting(pa, ab, kC, bbC, avg, obp, slg, ops, prefix){
+  prefix = prefix || '';
+  if(pa > 0){
+    var kPct = kC/pa*100, bbPct = bbC/pa*100;
+    setCardEval(prefix+'kpiK',   kPct<=10?'good':kPct<=20?'mid':'bad',   kPct<=10?'✓ 少ない':kPct<=20?'△ やや多め':'✗ 多め');
+    setCardEval(prefix+'kpiBB',  bbPct>=15?'good':bbPct>=10?'mid':'bad', bbPct>=15?'✓ 選球眼良好':bbPct>=10?'△ 平均的':'✗ 少ない');
+  }
+  if(ab > 0){
+    setCardEval(prefix+'kpiAvg', avg>=.280?'good':avg>=.220?'mid':'bad', avg>=.280?'✓ 優秀':avg>=.220?'△ 平均的':'✗ 低め');
+    setCardEval(prefix+'kpiOBP', obp>=.350?'good':obp>=.280?'mid':'bad', obp>=.350?'✓ 優秀':obp>=.280?'△ 平均的':'✗ 低め');
+    setCardEval(prefix+'kpiSLG', slg>=.400?'good':slg>=.300?'mid':'bad', slg>=.400?'✓ 優秀':slg>=.300?'△ 平均的':'✗ 低め');
+    setCardEval(prefix+'kpiOPS', ops>=.750?'good':ops>=.650?'mid':'bad', ops>=.750?'✓ 優秀':ops>=.650?'△ 平均的':'✗ 低め');
+  }
 }
 
 function fmtAvg(v){ return '.'+Math.round(v*1000).toString().padStart(3,'0'); }
@@ -1217,13 +1224,14 @@ function renderPlayerDetail(sel, players){
     var kPct = pa>0 ? kC/pa : 0;
     var bbPct = pa>0 ? bbC/pa : 0;
     function fmtPct(v){ return (v*100).toFixed(1)+'%'; }
+    var pid = 'p_'; // 選手別カードのIDプレフィックス
     var kpiHtml = ''
       // 行1: 打席PA・打数AB・三振K・四死球
       +'<div class="kpi-grid wide" style="margin-bottom:8px">'
       +'<div class="kpi-card"><div class="kpi-val" style="color:var(--text)">'+pa+'</div><div class="kpi-label" style="color:var(--text2)">打席 PA</div></div>'
       +'<div class="kpi-card"><div class="kpi-val" style="color:var(--text)">'+ab+'</div><div class="kpi-label" style="color:var(--text2)">打数 AB</div></div>'
-      +'<div class="kpi-card"><div class="kpi-val" style="color:var(--red)">'+kC+'</div><div class="kpi-label" style="color:var(--text2)">三振 K <span style="color:var(--red);font-size:11px;margin-left:6px">'+(pa>0?fmtPct(kPct):'')+'</span></div></div>'
-      +'<div class="kpi-card"><div class="kpi-val" style="color:var(--purple)">'+bbC+'</div><div class="kpi-label" style="color:var(--text2)">四死球 <span style="color:var(--purple);font-size:11px;margin-left:6px">'+(pa>0?fmtPct(bbPct):'')+'</span></div></div>'
+      +'<div class="kpi-card"><div id="p_kpiK" class="kpi-val" style="color:var(--red)">'+kC+'</div><div class="kpi-label" style="color:var(--text2)">三振 K <span style="color:var(--red);font-size:11px;margin-left:6px">'+(pa>0?fmtPct(kPct):'')+'</span></div></div>'
+      +'<div class="kpi-card"><div id="p_kpiBB" class="kpi-val" style="color:var(--purple)">'+bbC+'</div><div class="kpi-label" style="color:var(--text2)">四死球 <span style="color:var(--purple);font-size:11px;margin-left:6px">'+(pa>0?fmtPct(bbPct):'')+'</span></div></div>'
       +'</div>'
       // 行2: 安打H・長打XBH・打点RBI・盗塁SB
       +'<div class="kpi-grid wide" style="margin-bottom:8px">'
@@ -1234,10 +1242,10 @@ function renderPlayerDetail(sel, players){
       +'</div>'
       // 行3: 打率AVG・出塁率OBP・長打率SLG・OPS
       +'<div class="kpi-grid wide" style="margin-bottom:16px">'
-      +'<div class="kpi-card gold"><div class="kpi-val">'+fmtAvg(avg)+'</div><div class="kpi-label">打率 AVG</div></div>'
-      +'<div class="kpi-card blue"><div class="kpi-val">'+fmtAvg(obp)+'</div><div class="kpi-label">出塁率 OBP</div></div>'
-      +'<div class="kpi-card purple"><div class="kpi-val">'+fmtAvg(slg)+'</div><div class="kpi-label">長打率 SLG</div></div>'
-      +'<div class="kpi-card" style="border-color:rgba(232,184,75,0.6);background:rgba(232,184,75,0.1)"><div class="kpi-val" style="color:var(--accent)">'+fmtOPS(ops)+'</div><div class="kpi-label" style="color:var(--accent)">OPS</div></div>'
+      +'<div class="kpi-card gold"><div id="p_kpiAvg" class="kpi-val">'+fmtAvg(avg)+'</div><div class="kpi-label">打率 AVG</div></div>'
+      +'<div class="kpi-card blue"><div id="p_kpiOBP" class="kpi-val">'+fmtAvg(obp)+'</div><div class="kpi-label">出塁率 OBP</div></div>'
+      +'<div class="kpi-card purple"><div id="p_kpiSLG" class="kpi-val">'+fmtAvg(slg)+'</div><div class="kpi-label">長打率 SLG</div></div>'
+      +'<div class="kpi-card" style="border-color:rgba(232,184,75,0.6);background:rgba(232,184,75,0.1)"><div id="p_kpiOPS" class="kpi-val" style="color:var(--accent)">'+fmtOPS(ops)+'</div><div class="kpi-label" style="color:var(--accent)">OPS</div></div>'
       +'</div>';
 
     // 打球種別ドーナツ
@@ -1344,6 +1352,7 @@ function renderPlayerDetail(sel, players){
     }
 
     wrap.innerHTML = kpiHtml + dirBarHtml + typeBarHtml + fldHtml + logHtml + fldLogHtml;
+    evalBatting(pa, ab, kC, bbC, avg, obp, slg, ops, 'p_');
   }
 }
 
