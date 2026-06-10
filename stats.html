@@ -1538,8 +1538,12 @@ function doImport(file){
         if(idx >= 0){ existingGames[idx] = g; } // 上書き
         else { existingGames.push(g); }          // 追記
       });
-      // 日付順にソート
-      existingGames.sort(function(a,b){ return (a.date||'').localeCompare(b.date||''); });
+      // 日付順にソート（YYYY/M/D形式をDate変換して比較）
+      existingGames.sort(function(a,b){
+        var da = new Date((a.date||'').replace(/\//g,'-'));
+        var db = new Date((b.date||'').replace(/\//g,'-'));
+        return da - db;
+      });
       gamesData = existingGames;
       saveHistory();
 
