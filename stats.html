@@ -528,18 +528,44 @@ function loadData(){
     var ms = localStorage.getItem('baseball_master');
     if(ms) masterData = JSON.parse(ms);
     teamName = localStorage.getItem('baseball_teamName') || '長束中';
+    document.getElementById('headerTeam').textContent = teamName;
+
+    // 蓄積履歴を読み込む
+    var hist = localStorage.getItem('baseball_history');
+    if(hist){
+      var histData = JSON.parse(hist);
+      if(histData && histData.length > 0){
+        gamesData = histData;
+        selectedGame = 'all';
+        buildGameData();
+        renderGameFilter();
+        var totalPA = 0;
+        Object.values(gameData.batData).forEach(function(bd){ totalPA += (bd.results||[]).length; });
+        var status = document.getElementById('importStatus');
+        status.style.color = '#3ecf8e';
+        status.textContent = '✓ 保存済みデータ — ' + gamesData.length + '試合 / ' + Object.keys(gameData.batData).length + '選手 / ' + totalPA + '打席';
+        document.getElementById('importClearBtn').style.display = '';
+        document.getElementById('lastUpdated').textContent = '保存済みデータを読み込み中';
+        return;
+      }
+    }
+
+    // 履歴がなければrecorderのgameDataを参照
     var gs = localStorage.getItem('baseball_game');
     if(gs) gameData = JSON.parse(gs);
-    document.getElementById('headerTeam').textContent = teamName;
     if(gameData){
-      var opp = gameData.opponent || '';
       var date = gameData.gameDate || '';
-      // headerOpponent removed
       document.getElementById('lastUpdated').textContent = date || '記録中...';
     } else {
       document.getElementById('lastUpdated').textContent = 'データなし';
     }
   }catch(e){console.error(e);}
+}
+
+function saveHistory(){
+  try{
+    localStorage.setItem('baseball_history', JSON.stringify(gamesData));
+  }catch(e){console.error('履歴保存エラー:', e);}
 }
 
 // ============================================================
@@ -1503,6 +1529,20 @@ function doImport(file){
         else { masterData.push({num:info.num, name:name, pos:info.pos}); }
       });
 
+      // 履歴に追記・上書き保存
+      var hist2 = localStorage.getItem('baseball_history');
+      var existingGames = hist2 ? JSON.parse(hist2) : [];
+      gamesData.forEach(function(g){
+        var key = g.date + '_' + g.opponent;
+        var idx = existingGames.findIndex(function(e){ return (e.date+'_'+e.opponent) === key; });
+        if(idx >= 0){ existingGames[idx] = g; } // 上書き
+        else { existingGames.push(g); }          // 追記
+      });
+      // 日付順にソート
+      existingGames.sort(function(a,b){ return (a.date||'').localeCompare(b.date||''); });
+      gamesData = existingGames;
+      saveHistory();
+
       // 全試合合算のgameDataを生成
       selectedGame = 'all';
       buildGameData();
@@ -1609,17 +1649,21 @@ function selectGame(idx){
 }
 
 function clearImport(){
+  if(!confirm('保存済みの履歴データをすべて削除しますか？\nこの操作は元に戻せません。')){return;}
   importedData = null;
   gamesData = [];
+  gameData = null;
   selectedGame = 'all';
+  localStorage.removeItem('baseball_history');
   var bar = document.getElementById('gameFilterBar');
-  if(bar) bar.style.display='none';
-  // localStorageのデータに戻す
-  loadData();
+  if(bar){ bar.style.display='none'; bar.innerHTML=''; }
+  var sel = document.getElementById('gameSelect');
+  if(sel) sel.parentNode && (sel.outerHTML='');
   document.getElementById('importStatus').style.color = '#4a5570';
   document.getElementById('importStatus').textContent = '集計Excelの「記録入力」シートを読み込めます';
   document.getElementById('importClearBtn').style.display = 'none';
   document.getElementById('xlsxInput').value = '';
+  document.getElementById('lastUpdated').textContent = 'データなし';
   var activePanel = panels.find(function(n){ return document.getElementById('panel-'+n).className.includes('active'); });
   switchTab(activePanel || 'overview');
 }
