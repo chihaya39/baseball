@@ -145,7 +145,6 @@ td:first-child{text-align:left;padding-left:4px}
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="長束REC">
-  <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiB2aWV3Qm94PSIwIDAgNTEyIDUxMiI+CiAgPHJlY3Qgd2lkdGg9IjUxMiIgaGVpZ2h0PSI1MTIiIHJ4PSIxMTUiIGZpbGw9IiMwZDFhMGQiLz4KICA8IS0tIOOCsOODreODvOiDjOaZryAtLT4KICA8Y2lyY2xlIGN4PSIyNTYiIGN5PSIyOTAiIHI9IjE4MCIgZmlsbD0icmdiYSg2MiwyMDcsMTQyLDAuMDQpIi8+CiAgPCEtLSDplbfmnZ8gLS0+CiAgPHRleHQgeD0iMjU2IiB5PSIxODUiIGZvbnQtZmFtaWx5PSItYXBwbGUtc3lzdGVtLEhlbHZldGljYSBOZXVlLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iNzIiIGZvbnQtd2VpZ2h0PSI4MDAiIGZpbGw9IiMzZWNmOGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGxldHRlci1zcGFjaW5nPSIxMCI+6ZW35p2fPC90ZXh0PgogIDwhLS0gUkVDIC0tPgogIDx0ZXh0IHg9IjI1NiIgeT0iMzEwIiBmb250LWZhbWlseT0iLWFwcGxlLXN5c3RlbSxIZWx2ZXRpY2EgTmV1ZSxzYW5zLXNlcmlmIiBmb250LXNpemU9IjEzMCIgZm9udC13ZWlnaHQ9IjkwMCIgZmlsbD0iI2ZmZmZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgbGV0dGVyLXNwYWNpbmc9IjQiPlJFQzwvdGV4dD4KICA8IS0tIOODkeODq+OCueODieODg+ODiCAtLT4KICA8Y2lyY2xlIGN4PSIyNTYiIGN5PSIzNzAiIHI9IjE0IiBmaWxsPSIjM2VjZjhlIi8+CiAgPGNpcmNsZSBjeD0iMjU2IiBjeT0iMzcwIiByPSIyMiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjM2VjZjhlIiBzdHJva2Utd2lkdGg9IjMiIG9wYWNpdHk9IjAuNCIvPgo8L3N2Zz4=">
 </head>
 <body>
 
@@ -2115,6 +2114,26 @@ function nowTime(){return new Date().toLocaleTimeString('ja-JP',{hour:'2-digit',
 // ===== START =====
 init();
 updateOutDisplay();
+</script>
+
+<script>
+(function(){
+  if(!document.createElement('canvas').getContext) return;
+  var c=document.createElement('canvas');c.width=c.height=512;
+  var ctx=c.getContext('2d');
+  ctx.beginPath();ctx.roundRect(0,0,512,512,115);ctx.fillStyle='#0d1a0d';ctx.fill();
+  var grd=ctx.createRadialGradient(256,300,0,256,300,200);
+  grd.addColorStop(0,'rgba(62,207,142,0.08)');grd.addColorStop(1,'rgba(62,207,142,0)');
+  ctx.beginPath();ctx.roundRect(0,0,512,512,115);ctx.fillStyle=grd;ctx.fill();
+  ctx.textAlign='center';
+  ctx.font='800 80px -apple-system,sans-serif';ctx.fillStyle='#3ecf8e';ctx.fillText('長束',256,190);
+  ctx.font='900 135px -apple-system,sans-serif';ctx.fillStyle='#ffffff';ctx.fillText('REC',256,330);
+  ctx.beginPath();ctx.arc(256,385,14,0,Math.PI*2);ctx.fillStyle='#3ecf8e';ctx.fill();
+  ctx.beginPath();ctx.arc(256,385,24,0,Math.PI*2);ctx.strokeStyle='rgba(62,207,142,0.4)';ctx.lineWidth=3;ctx.stroke();
+  var link=document.querySelector('link[rel="apple-touch-icon"]')||document.createElement('link');
+  link.rel='apple-touch-icon';link.href=c.toDataURL('image/png');
+  document.head.appendChild(link);
+})();
 </script>
 </body>
 </html>
