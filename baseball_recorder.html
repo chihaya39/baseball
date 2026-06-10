@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="試合記録">
-<title>試合記録</title>
+<title>NAGATSUKA REC</title>
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -150,7 +150,7 @@ td:first-child{text-align:left;padding-left:4px}
 
 <div class="header">
   <div>
-    <div class="header-title" id="headerTitle">⚾ 試合記録</div>
+    <div class="header-title" id="headerTitle">NAGATSUKA REC</div>
     <div class="header-sub" id="headerSub">オーダーを設定してください</div>
   </div>
   <div id="scoreDisplay" style="font-size:12px;font-weight:700;color:var(--text);text-align:center;flex:1;display:none"></div>
@@ -166,7 +166,7 @@ td:first-child{text-align:left;padding-left:4px}
 <div class="panel active" id="tab-order">
   <div style="padding:20px 0 10px;text-align:center">
     <div style="font-size:28px;margin-bottom:4px">⚾</div>
-    <div style="font-size:16px;font-weight:700;color:var(--text)">試合記録</div>
+    <div style="font-size:16px;font-weight:700;color:var(--text)">NAGATSUKA REC</div>
   </div>
 
   <div class="sl" style="margin-top:20px">試合情報</div>
@@ -561,7 +561,7 @@ function loadGameFromStorage(){
     onBase=g.onBase||[];
     // 試合終了状態の復元
     if(gameState==='ended' && g.endScore){
-      document.getElementById('headerTitle').textContent = '⚾ 試合記録';
+      document.getElementById('headerTitle').textContent = 'NAGATSUKA REC';
       document.getElementById('headerSub').textContent = g.gameDate||'';
       var scoreEl2 = document.getElementById('scoreDisplay');
       if(scoreEl2){
@@ -1005,9 +1005,9 @@ function endGame(){
   Object.values(batData).forEach(function(s){ myScore += s.rbi||0; });
   Object.values(pitData).forEach(function(s){ oppScore += s.R||0; });
   var teamName = getTeamName();
-  // ヘッダー左：⚾ 試合記録 / 日付
+  // ヘッダー左：NAGATSUKA REC / 日付
   var endDate = document.getElementById('gameDate').value || '';
-  document.getElementById('headerTitle').textContent = '⚾ 試合記録';
+  document.getElementById('headerTitle').textContent = 'NAGATSUKA REC';
   document.getElementById('headerSub').textContent = endDate;
   // ヘッダー中央：スコア（大きめ）
   var scoreEl = document.getElementById('scoreDisplay');
