@@ -1540,7 +1540,9 @@ function doImport(file){
       }
 
       ws.eachRow({includeEmpty:false}, function(row, rowNum){
-        if(rowNum <= 5) return; // ヘッダー行をスキップ（1〜5行目）
+        // ヘッダー行をスキップ（1列目が年数字でなければスキップ）
+        var firstCell = cellStr(row.getCell(1)).trim();
+        if(!firstCell || firstCell === '試合日' || !/\d{4}/.test(firstCell)) return;
         var opponent = cellStr(row.getCell(2)).trim();
         var order = cellStr(row.getCell(3)).trim();
         var num = cellStr(row.getCell(4)).trim();
