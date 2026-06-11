@@ -1531,7 +1531,12 @@ function doImport(file){
           if(v.text !== undefined) return typeof v.text === 'object' ? (v.text.richText ? v.text.richText.map(function(r){return r.text;}).join('') : String(v.text)) : String(v.text);
           return String(v);
         }
-        return String(v);
+        var s = String(v);
+        // ハイフン区切り日付をスラッシュに統一（2026-06-14 → 2026/6/14）
+        s = s.replace(/^(\d{4})-(\d{2})-(\d{2})$/, function(_, y, m, d){
+          return y + '/' + parseInt(m) + '/' + parseInt(d);
+        });
+        return s;
       }
 
       ws.eachRow({includeEmpty:false}, function(row, rowNum){
@@ -2061,17 +2066,8 @@ function renderPitchingDetail(sel, pitchers){
 loadData();
 renderOverview();
 
-// 定期更新（30秒ごと）
-setInterval(function(){
-  loadData();
-  var activePanel = panels.find(function(n){return document.getElementById('panel-'+n).className.includes('active');});
-  if(activePanel==='overview') renderOverview();
-  if(activePanel==='direction') renderDirection();
-  if(activePanel==='players') renderPlayers();
-  if(activePanel==='log') renderLog();
-  if(activePanel==='fielding') renderFielding();
-  if(activePanel==='pitching') renderPitching();
-}, 30000);
+// 定期更新はrecorderとの連携完成後に復活予定
+// setInterval(...);
 </script>
 
 <script>
