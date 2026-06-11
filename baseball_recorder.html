@@ -596,17 +596,50 @@ function clearGameStorage(){
 
 // ===== TAB SWITCH =====
 function switchTab(name){
+  // 試合中は攻守に応じてタブを制限
+  if(gameState === 'playing'){
+    var isAttacking = isSenkou ? isOmote : !isOmote;
+    var attackOnly = ['batting','running'];   // 攻撃中のみ
+    var defenseOnly = ['fielding','pitcher']; // 守備中のみ
+    if(isAttacking && defenseOnly.indexOf(name) >= 0){
+      alert('攻撃中は野手・投手タブは使えません');
+      return;
+    }
+    if(!isAttacking && attackOnly.indexOf(name) >= 0){
+      alert('守備中は打撃・走塁タブは使えません');
+      return;
+    }
+  }
+
   TABS.forEach(function(n){
     var p = document.getElementById('tab-'+n);
     if(p) p.className = 'panel'+(n===name?' active':'');
     var t = document.getElementById('tab'+n.charAt(0).toUpperCase()+n.slice(1));
     if(t) t.className = 'tab'+(n===name?' active':'');
   });
+
+  // タブの見た目をグレーアウト
+  if(gameState === 'playing'){
+    var isAttacking2 = isSenkou ? isOmote : !isOmote;
+    ['batting','running'].forEach(function(n){
+      var t = document.getElementById('tab'+n.charAt(0).toUpperCase()+n.slice(1));
+      if(t) t.style.opacity = isAttacking2 ? '1' : '0.35';
+    });
+    ['fielding','pitcher'].forEach(function(n){
+      var t = document.getElementById('tab'+n.charAt(0).toUpperCase()+n.slice(1));
+      if(t) t.style.opacity = !isAttacking2 ? '1' : '0.35';
+    });
+  } else {
+    ['batting','running','fielding','pitcher'].forEach(function(n){
+      var t = document.getElementById('tab'+n.charAt(0).toUpperCase()+n.slice(1));
+      if(t) t.style.opacity = '1';
+    });
+  }
+
   window.scrollTo(0, 0);
   if(name==='stats') renderStats();
   if(name==='pitcher'){
     renderPitStats();
-    // 投手未選択なら選択エリアを開く
     if(!currentPitcher){
       document.getElementById('pitcherSelectArea').style.display='';
     }
