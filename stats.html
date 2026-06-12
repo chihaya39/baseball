@@ -955,9 +955,15 @@ function renderOverview(){
     var eraV2  = parseFloat(calcERA(pitR, pitO));
     var whipV2 = (pitBB+pitH)/(pitO/3);
     var kbbV2  = pitBB>0 ? pitK/pitBB : null;
+    var k7V2   = pitK/pitO*21;
+    var bb7V2  = pitBB/pitO*21;
+    var h7V2   = pitH/pitO*21;
     setCardEval('ovPitERA',  eraV2<=3?'good':eraV2<=5?'mid':'bad',   eraV2<=3?'✓ 優秀':eraV2<=5?'△ 平均的':'✗ 高め');
     setCardEval('ovPitWHIP', whipV2<=1.2?'good':whipV2<=1.6?'mid':'bad', whipV2<=1.2?'✓ 優秀':whipV2<=1.6?'△ 平均的':'✗ 高め');
     if(kbbV2!==null) setCardEval('ovPitKBB', kbbV2>=2?'good':kbbV2>=1?'mid':'bad', kbbV2>=2?'✓ 優秀':kbbV2>=1?'△ 平均的':'✗ 低め');
+    setCardEval('ovPitK7',  k7V2>=7?'good':k7V2>=4?'mid':'bad',  k7V2>=7?'✓ 多い':k7V2>=4?'△ 平均的':'✗ 少ない');
+    setCardEval('ovPitBB7', bb7V2<=2?'good':bb7V2<=4?'mid':'bad', bb7V2<=2?'✓ 少ない':bb7V2<=4?'△ 平均的':'✗ 多め');
+    setCardEval('ovPitH7',  h7V2<=6?'good':h7V2<=9?'mid':'bad',  h7V2<=6?'✓ 少ない':h7V2<=9?'△ 平均的':'✗ 多め');
   }
 
   // 打球種別バー
