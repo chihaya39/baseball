@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="長束STATS">
+<link rel="apple-touch-icon" id="touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==">
 <title>長束STATS</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+JP:wght@300;400;500;700&display=swap');
@@ -2201,9 +2202,9 @@ renderOverview();
   ball(ctx,  s/2,     418, 40, 0.88);
   bat(ctx,   s/2+50,  468, s/2+168, 376, 0.88);
 
-  var link=document.querySelector('link[rel="apple-touch-icon"]')||document.createElement('link');
-  link.rel='apple-touch-icon';link.href=c.toDataURL('image/png');
-  document.head.appendChild(link);
+  var link = document.getElementById('touch-icon');
+  if(!link){ link=document.createElement('link'); link.rel='apple-touch-icon'; document.head.appendChild(link); }
+  link.href = c.toDataURL('image/png');
 })();
 </script>
 </body>
