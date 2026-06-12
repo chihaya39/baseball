@@ -189,6 +189,9 @@ main{position:relative;z-index:1;padding:16px;padding-bottom:40px}
 .avg-high{color:var(--gold);font-weight:700}
 .avg-mid{color:var(--green)}
 .avg-low{color:var(--text2)}
+.ops-high{color:#f6ad55;font-weight:700}
+.ops-mid{color:#ed8936}
+.ops-low{color:var(--text2)}
 
 /* ---- HIT MATRIX ---- */
 .matrix-wrap{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px}
@@ -357,6 +360,8 @@ main{position:relative;z-index:1;padding:16px;padding-bottom:40px}
     <div class="kpi-card blue"><div class="kpi-val" id="kpiOBP">.---</div><div class="kpi-label">出塁率 OBP</div></div>
     <div class="kpi-card purple"><div class="kpi-val" id="kpiSLG">.---</div><div class="kpi-label">長打率 SLG</div></div>
     <div class="kpi-card" style="border-color:rgba(232,184,75,0.6);background:rgba(232,184,75,0.1)"><div class="kpi-val" style="color:var(--accent)" id="kpiOPS">.---</div><div class="kpi-label" style="color:var(--accent)">OPS</div></div>
+    <div class="kpi-card" style="border-color:rgba(99,179,237,0.5);background:rgba(99,179,237,0.08)"><div class="kpi-val" style="color:#63b3ed" id="kpiBABIP">.---</div><div class="kpi-label" style="color:#63b3ed">BABIP</div></div>
+    <div class="kpi-card" style="border-color:rgba(154,205,120,0.5);background:rgba(154,205,120,0.08)"><div class="kpi-val" style="color:#9acd78" id="kpiWOBA">.---</div><div class="kpi-label" style="color:#9acd78">wOBA</div></div>
   </div>
 
   <div class="sec-label">チーム守備</div>
@@ -761,6 +766,14 @@ function renderOverview(){
   document.getElementById('kpiOBP').textContent = pa>0 ? fmtAvg(obp) : '.---';
   document.getElementById('kpiSLG').textContent = ab>0 ? fmtAvg(slg) : '.---';
   document.getElementById('kpiOPS').textContent = ab>0 ? fmtOPS(ops) : '.---';
+  // BABIP = 安打 / (打数 - 三振)  ※中学は本塁打≒0なので省略
+  var babipDenom = ab - k;
+  var babip = babipDenom > 0 ? (hits / babipDenom) : 0;
+  document.getElementById('kpiBABIP').textContent = babipDenom>0 ? fmtAvg(babip) : '.---';
+  // wOBA = (四死球×0.69 + 単打×0.88 + 長打×1.25) / 打席
+  var singles_w = hits - extra;
+  var woba = pa > 0 ? (bb*0.69 + singles_w*0.88 + extra*1.25) / pa : 0;
+  document.getElementById('kpiWOBA').textContent = pa>0 ? fmtAvg(woba) : '.---';
   document.getElementById('kpiH').textContent = hits;
   document.getElementById('kpiPA').textContent = pa;
   document.getElementById('kpiAB').textContent = ab;
@@ -1151,15 +1164,20 @@ function renderPlayerDetail(sel, players){
       var slg2 = ab>0 ? tb2/ab : 0;
       var ops2 = obp + slg2;
       var avgCls = avg>=0.4?'avg-high':avg>=0.25?'avg-mid':'avg-low';
-      var opsCls = ops2>=1.0?'avg-high':ops2>=0.7?'avg-mid':'avg-low';
+      var opsCls = ops2>=1.0?'ops-high':ops2>=0.7?'ops-mid':'ops-low';
       var orderLabel = bd.order ? (typeof bd.order==='number'?bd.order+'番':bd.order) : '-';
       var numVal = parseInt(lbl.num) || 999;
       var kpct = pa>0 ? k/pa : 0;
       var bbpct = pa>0 ? bb/pa : 0;
+      var babipDenom2 = ab - k;
+      var babip2 = babipDenom2>0 ? h/babipDenom2 : 0;
+      var singles_w2 = h - extra;
+      var woba2 = pa>0 ? (bb*0.69 + singles_w2*0.88 + extra*1.25) / pa : 0;
       rows += '<tr style="animation:fadeUp .3s '+(i*0.05)+'s ease both"'
         +' data-num="'+numVal+'" data-pa="'+pa+'" data-ab="'+ab+'" data-h="'+h+'" data-xbh="'+extra+'"'
         +' data-kpct="'+kpct+'" data-bbpct="'+bbpct+'" data-avg="'+(ab>0?avg:0)+'"'
-        +' data-obp="'+(pa>0?obp:0)+'" data-slg="'+(ab>0?slg2:0)+'" data-ops="'+(ab>0?ops2:0)+'">'
+        +' data-obp="'+(pa>0?obp:0)+'" data-slg="'+(ab>0?slg2:0)+'" data-ops="'+(ab>0?ops2:0)+'"'
+        +' data-babip="'+(babipDenom2>0?babip2:0)+'" data-woba="'+(pa>0?woba2:0)+'">'
         +'<td><span class="player-num">'+(lbl.num?'#'+lbl.num:'')+'</span> <span class="player-name">'+lbl.name+'</span><br><span style="font-size:9px;color:var(--text3)">'+orderLabel+'</span></td>'
         +'<td>'+pa+'</td>'
         +'<td>'+ab+'</td>'
@@ -1170,7 +1188,9 @@ function renderPlayerDetail(sel, players){
         +'<td class="'+avgCls+'">'+(ab>0?fmtAvg(avg):'.-')+'</td>'
         +'<td>'+(pa>0?fmtAvg(obp):'.-')+'</td>'
         +'<td>'+(ab>0?fmtAvg(slg2):'.-')+'</td>'
-        +'<td class="'+opsCls+'">'+(ab>0?fmtOPS(ops2):'.-')+'</td>'
+        +'<td style="color:#f6ad55">'+(ab>0?fmtOPS(ops2):'.-')+'</td>'
+        +'<td style="color:#63b3ed">'+(babipDenom2>0?fmtAvg(babip2):'.-')+'</td>'
+        +'<td style="color:#9acd78">'+(pa>0?fmtAvg(woba2):'.-')+'</td>'
         +'</tr>';
     });
     sortKey = 'num'; sortAsc = true; // デフォルト背番号昇順
@@ -1186,7 +1206,9 @@ function renderPlayerDetail(sel, players){
       +'<th onclick="sortTable(\'avg\')" style="cursor:pointer" id="th-avg">AVG ↕</th>'
       +'<th onclick="sortTable(\'obp\')" style="cursor:pointer" id="th-obp">OBP ↕</th>'
       +'<th onclick="sortTable(\'slg\')" style="cursor:pointer" id="th-slg">SLG ↕</th>'
-      +'<th onclick="sortTable(\'ops\')" style="cursor:pointer" id="th-ops">OPS ↕</th>'
+      +'<th onclick="sortTable(\'ops\')" style="cursor:pointer;color:#f6ad55" id="th-ops">OPS ↕</th>'
+      +'<th onclick="sortTable(\'babip\')" style="cursor:pointer;color:#63b3ed" id="th-babip">BABIP ↕</th>'
+      +'<th onclick="sortTable(\'woba\')" style="cursor:pointer;color:#9acd78" id="th-woba">wOBA ↕</th>'
       +'</tr></thead>'
       +'<tbody>'+rows+'</tbody></table></div>';
   } else {
@@ -1240,12 +1262,14 @@ function renderPlayerDetail(sel, players){
       +'<div class="kpi-card"><div class="kpi-val" style="color:var(--gold)">'+rbiC+'</div><div class="kpi-label" style="color:var(--text2)">打点 RBI</div></div>'
       +'<div class="kpi-card"><div class="kpi-val" style="color:var(--green)">'+(bd.sb||0)+'</div><div class="kpi-label" style="color:var(--text2)">盗塁 SB</div></div>'
       +'</div>'
-      // 行3: 打率AVG・出塁率OBP・長打率SLG・OPS
+      // 行3: 打率AVG・出塁率OBP・長打率SLG・OPS・BABIP
       +'<div class="kpi-grid wide" style="margin-bottom:16px">'
       +'<div class="kpi-card gold"><div id="p_kpiAvg" class="kpi-val">'+fmtAvg(avg)+'</div><div class="kpi-label">打率 AVG</div></div>'
       +'<div class="kpi-card blue"><div id="p_kpiOBP" class="kpi-val">'+fmtAvg(obp)+'</div><div class="kpi-label">出塁率 OBP</div></div>'
       +'<div class="kpi-card purple"><div id="p_kpiSLG" class="kpi-val">'+fmtAvg(slg)+'</div><div class="kpi-label">長打率 SLG</div></div>'
-      +'<div class="kpi-card" style="border-color:rgba(232,184,75,0.6);background:rgba(232,184,75,0.1)"><div id="p_kpiOPS" class="kpi-val" style="color:var(--accent)">'+fmtOPS(ops)+'</div><div class="kpi-label" style="color:var(--accent)">OPS</div></div>'
+      +'<div class="kpi-card" style="border-color:rgba(246,173,85,0.5);background:rgba(246,173,85,0.08)"><div id="p_kpiOPS" class="kpi-val" style="color:'+(ops>=1.0?'#f6ad55':ops>=0.7?'#ed8936':'var(--text2)')+'">'+fmtOPS(ops)+'</div><div class="kpi-label" style="color:#f6ad55">OPS</div></div>'
+      +(function(){ var bd2=ab-kC; var bv=bd2>0?hList.length/bd2:0; return '<div class="kpi-card" style="border-color:rgba(99,179,237,0.5);background:rgba(99,179,237,0.08)"><div id="p_kpiBABIP" class="kpi-val" style="color:#63b3ed">'+(bd2>0?fmtAvg(bv):'.-')+'</div><div class="kpi-label" style="color:#63b3ed">BABIP</div></div>'; })(  )
+      +(function(){ var s=hList.filter(function(x){return !x.p.extra;}).length; var wv=pa>0?(bbC*0.69+s*0.88+extras*1.25)/pa:0; return '<div class="kpi-card" style="border-color:rgba(154,205,120,0.5);background:rgba(154,205,120,0.08)"><div id="p_kpiWOBA" class="kpi-val" style="color:#9acd78">'+(pa>0?fmtAvg(wv):'.-')+'</div><div class="kpi-label" style="color:#9acd78">wOBA</div></div>'; })(  )
       +'</div>';
 
     // 打球種別ドーナツ
@@ -1428,13 +1452,14 @@ function sortTable(key){
   }
 
   // ヘッダーの矢印を更新
-  var keys = ['num','pa','ab','h','xbh','kpct','bbpct','avg','obp','slg','ops'];
+  var keys = ['num','pa','ab','h','xbh','kpct','bbpct','avg','obp','slg','ops','babip','woba'];
+  var fixedColors = {ops:'#f6ad55', babip:'#63b3ed', woba:'#9acd78'};
   keys.forEach(function(k){
     var th = document.getElementById('th-'+k);
     if(!th) return;
     var label = th.textContent.replace(/ [↑↓↕]$/,'');
     th.textContent = label + (k===sortKey ? (sortAsc?' ↑':' ↓') : ' ↕');
-    th.style.color = k===sortKey ? 'var(--accent)' : '';
+    th.style.color = k===sortKey ? 'var(--accent)' : (fixedColors[k] || '');
   });
 
   // tbody内の行をソート
