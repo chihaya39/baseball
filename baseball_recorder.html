@@ -2154,15 +2154,24 @@ updateOutDisplay();
   if(!document.createElement('canvas').getContext) return;
   var c=document.createElement('canvas');c.width=c.height=512;
   var ctx=c.getContext('2d'),s=512;
+  function rr(x,y,w,h,r){
+    ctx.beginPath();
+    ctx.moveTo(x+r,y);
+    ctx.lineTo(x+w-r,y);ctx.arcTo(x+w,y,x+w,y+r,r);
+    ctx.lineTo(x+w,y+h-r);ctx.arcTo(x+w,y+h,x+w-r,y+h,r);
+    ctx.lineTo(x+r,y+h);ctx.arcTo(x,y+h,x,y+h-r,r);
+    ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);
+    ctx.closePath();
+  }
   // 背景：黒
-  ctx.beginPath();ctx.roundRect(0,0,s,s,91);ctx.fillStyle='#0d1a0d';ctx.fill();
-  // ゴールド内枠線（STATSと同じ）
-  ctx.beginPath();ctx.roundRect(22,22,s-44,s-44,72);
+  rr(0,0,s,s,91);ctx.fillStyle='#0d1a0d';ctx.fill();
+  // ゴールド内枠線
+  rr(22,22,s-44,s-44,72);
   ctx.strokeStyle='rgba(232,184,75,0.45)';ctx.lineWidth=7;ctx.stroke();
   // 緑グロー
   var grd=ctx.createRadialGradient(s/2,s*0.6,0,s/2,s*0.6,s*0.5);
   grd.addColorStop(0,'rgba(62,207,142,0.10)');grd.addColorStop(1,'rgba(62,207,142,0)');
-  ctx.beginPath();ctx.roundRect(0,0,s,s,91);ctx.fillStyle=grd;ctx.fill();
+  rr(0,0,s,s,91);ctx.fillStyle=grd;ctx.fill();
   // テキスト
   ctx.textAlign='center';
   ctx.font='800 80px -apple-system,sans-serif';ctx.fillStyle='#e8b84b';ctx.fillText('長束',s/2,190);
