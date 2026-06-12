@@ -152,11 +152,10 @@ td:first-child{text-align:left;padding-left:4px}
   <div>
     <div style="display:flex;align-items:baseline;gap:8px">
       <div class="header-title" id="headerTitle" style="color:#e8b84b">NAGATSUKA REC</div>
-      <div style="font-size:11px;color:var(--text2);font-weight:600">長束中</div>
+      <div id="headerTeamLabel" style="font-size:11px;color:var(--text2);font-weight:600">長束中</div>
     </div>
     <div class="header-sub" id="headerSub">試合情報を設定してから試合開始してください</div>
   </div>
-  <div id="scoreDisplay" style="font-size:12px;font-weight:700;color:var(--text);text-align:center;flex:1;display:none"></div>
   <div id="outDisplay" style="display:flex;align-items:center;gap:4px;margin-right:8px"></div>
   <select class="inning-sel" id="inningSelect" onchange="setInning(this.value)" style="display:none">
     <option value="1">1回</option><option value="2">2回</option><option value="3">3回</option>
@@ -167,12 +166,29 @@ td:first-child{text-align:left;padding-left:4px}
 
 <!-- ===== ORDER TAB ===== -->
 <div class="panel active" id="tab-order">
-  <div style="padding:20px 0 10px;text-align:center">
+  <div style="padding:40px 0 16px;text-align:center">
     <div style="font-size:28px;margin-bottom:4px">⚾</div>
     <div style="font-size:16px;font-weight:700;color:var(--text)">GAME NOTES</div>
   </div>
 
-  <div class="sl" style="margin-top:20px">試合情報</div>
+  <!-- スコアボード（試合終了後に表示） -->
+  <div id="scoreBoard" style="display:none;margin-bottom:24px;background:var(--bg3);border:1px solid rgba(232,184,75,0.25);border-radius:14px;padding:16px 20px;text-align:center">
+    <div id="scoreBoardType" style="font-size:10px;font-weight:700;color:#8b92a8;letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px"></div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:16px">
+      <div style="flex:1;text-align:right">
+        <div style="font-size:12px;color:#8b92a8;margin-bottom:4px" id="scoreBoardMyName"></div>
+        <div style="font-size:48px;font-weight:900;color:#e8b84b;line-height:1" id="scoreBoardMyScore">0</div>
+      </div>
+      <div style="font-size:22px;font-weight:700;color:#555e7a">−</div>
+      <div style="flex:1;text-align:left">
+        <div style="font-size:12px;color:#8b92a8;margin-bottom:4px" id="scoreBoardOppName"></div>
+        <div style="font-size:48px;font-weight:900;color:var(--text);line-height:1" id="scoreBoardOppScore">0</div>
+      </div>
+    </div>
+    <div id="scoreBoardStatus" style="font-size:11px;color:#8b92a8;margin-top:10px"></div>
+  </div>
+
+  <div class="sl" style="margin-top:4px">試合情報</div>
   <div class="grid2" style="margin-bottom:12px">
     <input type="date" id="gameDate">
     <input type="text" id="opponent" placeholder="対戦相手">
@@ -566,11 +582,30 @@ function loadGameFromStorage(){
     if(gameState==='ended' && g.endScore){
       document.getElementById('headerTitle').textContent = 'NAGATSUKA REC';
       document.getElementById('headerSub').textContent = g.gameDate||'';
-      var scoreEl2 = document.getElementById('scoreDisplay');
-      if(scoreEl2){
-        scoreEl2.innerHTML = '<span style="font-size:15px;font-weight:700;color:var(--text)">'+g.endScore+'</span>';
-        scoreEl2.style.display='';
-      }
+      // スコアボード復元
+      setTimeout(function(){
+        var parts = g.endScore.split(' ');
+        // endScore形式: "長束中 1 - 0 二葉中"
+        var teamName2 = localStorage.getItem('baseball_teamName')||'長束中';
+        var opp2 = g.opponent||'';
+        var myS = g.myScore!==undefined ? g.myScore : 0;
+        var opS = g.oppScore!==undefined ? g.oppScore : 0;
+        var sb = document.getElementById('scoreBoard');
+        if(sb){
+          var gameType = opp2&&opp2.includes('練')?'練習試合':'試合';
+          document.getElementById('scoreBoardType').textContent = gameType;
+          document.getElementById('scoreBoardMyName').textContent = teamName2;
+          document.getElementById('scoreBoardOppName').textContent = opp2;
+          document.getElementById('scoreBoardMyScore').textContent = myS;
+          document.getElementById('scoreBoardOppScore').textContent = opS;
+          document.getElementById('scoreBoardStatus').textContent = '試合終了';
+          var myEl=document.getElementById('scoreBoardMyScore');
+          var opEl=document.getElementById('scoreBoardOppScore');
+          myEl.style.color = myS>opS?'#e8b84b':myS<opS?'#f56565':'#8b92a8';
+          opEl.style.color = opS>myS?'#f56565':'#8b92a8';
+          sb.style.display='';
+        }
+      }, 150);
       document.getElementById('outDisplay').innerHTML =
         '<span style="font-size:11px;color:var(--text3)">試合終了</span>';
     }
@@ -1044,6 +1079,25 @@ function endGame(){
   var myScore = 0, oppScore = 0;
   Object.values(batData).forEach(function(s){ myScore += s.rbi||0; });
   Object.values(pitData).forEach(function(s){ oppScore += s.R||0; });
+  // スコアボード更新
+  function updateScoreBoard(teamName, opp, myScore, oppScore, status){
+    var sb = document.getElementById('scoreBoard');
+    if(!sb) return;
+    var gameType = opp && opp.includes('練') ? '練習試合' : '試合';
+    document.getElementById('scoreBoardType').textContent = gameType;
+    document.getElementById('scoreBoardMyName').textContent = teamName;
+    document.getElementById('scoreBoardOppName').textContent = opp||'相手';
+    document.getElementById('scoreBoardMyScore').textContent = myScore;
+    document.getElementById('scoreBoardOppScore').textContent = oppScore;
+    document.getElementById('scoreBoardStatus').textContent = status||'';
+    // 勝敗で色変え
+    var myEl = document.getElementById('scoreBoardMyScore');
+    var opEl = document.getElementById('scoreBoardOppScore');
+    myEl.style.color = myScore>oppScore?'#e8b84b':myScore<oppScore?'#f56565':'#8b92a8';
+    opEl.style.color = oppScore>myScore?'#f56565':'#8b92a8';
+    sb.style.display = '';
+  }
+  updateScoreBoard(teamName, opp, myScore, oppScore, '試合終了');
   var teamName = getTeamName();
   // ヘッダー左：NAGATSUKA REC / 日付
   var endDate = document.getElementById('gameDate').value || '';
@@ -1066,6 +1120,8 @@ function endGame(){
   // endScoreを保存
   var savedGame = JSON.parse(localStorage.getItem('baseball_game')||'{}');
   savedGame.endScore = teamName + ' ' + myScore + ' - ' + oppScore + ' ' + opp;
+  savedGame.myScore = myScore;
+  savedGame.oppScore = oppScore;
   savedGame.gameState = 'ended';
   localStorage.setItem('baseball_game', JSON.stringify(savedGame));
 }
