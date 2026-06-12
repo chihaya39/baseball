@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="長束REC">
-<title>長束REC</title>
+<meta name="apple-mobile-web-app-title" content="NAGATSUKA REC">
+<title>NAGATSUKA REC</title>
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -166,7 +166,7 @@ td:first-child{text-align:left;padding-left:4px}
 <div class="panel active" id="tab-order">
   <div style="padding:20px 0 10px;text-align:center">
     <div style="font-size:28px;margin-bottom:4px">⚾</div>
-    <div style="font-size:16px;font-weight:700;color:var(--text)">長束 REC</div>
+    <div style="font-size:16px;font-weight:700;color:var(--text)">NAGATSUKA REC</div>
   </div>
 
   <div class="sl" style="margin-top:20px">試合情報</div>
@@ -2153,16 +2153,26 @@ updateOutDisplay();
 (function(){
   if(!document.createElement('canvas').getContext) return;
   var c=document.createElement('canvas');c.width=c.height=512;
-  var ctx=c.getContext('2d');
-  ctx.beginPath();ctx.roundRect(0,0,512,512,115);ctx.fillStyle='#0d1a0d';ctx.fill();
-  var grd=ctx.createRadialGradient(256,300,0,256,300,200);
-  grd.addColorStop(0,'rgba(62,207,142,0.08)');grd.addColorStop(1,'rgba(62,207,142,0)');
-  ctx.beginPath();ctx.roundRect(0,0,512,512,115);ctx.fillStyle=grd;ctx.fill();
+  var ctx=c.getContext('2d'),s=512;
+  // 背景：黒
+  ctx.beginPath();ctx.roundRect(0,0,s,s,91);ctx.fillStyle='#0d1a0d';ctx.fill();
+  // ゴールド内枠線（STATSと同じ）
+  ctx.beginPath();ctx.roundRect(22,22,s-44,s-44,72);
+  ctx.strokeStyle='rgba(232,184,75,0.45)';ctx.lineWidth=7;ctx.stroke();
+  // 緑グロー
+  var grd=ctx.createRadialGradient(s/2,s*0.6,0,s/2,s*0.6,s*0.5);
+  grd.addColorStop(0,'rgba(62,207,142,0.10)');grd.addColorStop(1,'rgba(62,207,142,0)');
+  ctx.beginPath();ctx.roundRect(0,0,s,s,91);ctx.fillStyle=grd;ctx.fill();
+  // テキスト
   ctx.textAlign='center';
-  ctx.font='800 80px -apple-system,sans-serif';ctx.fillStyle='#3ecf8e';ctx.fillText('長束',256,190);
-  ctx.font='900 135px -apple-system,sans-serif';ctx.fillStyle='#ffffff';ctx.fillText('REC',256,330);
-  ctx.beginPath();ctx.arc(256,385,14,0,Math.PI*2);ctx.fillStyle='#3ecf8e';ctx.fill();
-  ctx.beginPath();ctx.arc(256,385,24,0,Math.PI*2);ctx.strokeStyle='rgba(62,207,142,0.4)';ctx.lineWidth=3;ctx.stroke();
+  ctx.font='800 80px -apple-system,sans-serif';ctx.fillStyle='#e8b84b';ctx.fillText('長束',s/2,190);
+  ctx.font='900 135px -apple-system,sans-serif';ctx.fillStyle='#ffffff';ctx.fillText('REC',s/2,330);
+  // ボール（白＋赤縫い目）
+  var bx=s/2,by=415,r=56;
+  ctx.beginPath();ctx.arc(bx,by,r,0,Math.PI*2);ctx.fillStyle='#f5f5f0';ctx.fill();
+  ctx.strokeStyle='rgba(200,45,45,0.85)';ctx.lineWidth=r*0.09;
+  ctx.beginPath();ctx.arc(bx,by,r*0.52,-0.6,0.6);ctx.stroke();
+  ctx.beginPath();ctx.arc(bx,by,r*0.52,Math.PI-0.6,Math.PI+0.6);ctx.stroke();
   var link=document.querySelector('link[rel="apple-touch-icon"]')||document.createElement('link');
   link.rel='apple-touch-icon';link.href=c.toDataURL('image/png');
   document.head.appendChild(link);
