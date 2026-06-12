@@ -7,7 +7,6 @@
 <meta name="apple-mobile-web-app-title" content="長束STATS">
 <link rel="apple-touch-icon" id="touch-icon">
 <script>
-// アイコンをheadで即時生成（iOSキャッシュ対策）
 (function(){
   var c=document.createElement('canvas');c.width=c.height=512;
   var ctx=c.getContext('2d');if(!ctx)return;
@@ -28,11 +27,48 @@
   ctx.font='800 74px -apple-system,sans-serif';ctx.fillStyle='#e8b84b';ctx.fillText('長束',s/2,165);
   ctx.font='900 125px -apple-system,sans-serif';ctx.fillStyle='#ffffff';ctx.fillText('STATS',s/2,300);
   // ボール
-  var bx=s/2,by=418,r=40;
-  ctx.beginPath();ctx.arc(bx,by,r,0,Math.PI*2);ctx.fillStyle='#f5f5f0';ctx.fill();
-  ctx.strokeStyle='rgba(200,45,45,0.75)';ctx.lineWidth=r*0.09;
-  ctx.beginPath();ctx.arc(bx,by,r*0.52,-0.55,0.55);ctx.stroke();
-  ctx.beginPath();ctx.arc(bx,by,r*0.52,Math.PI-0.55,Math.PI+0.55);ctx.stroke();
+  function ball(bx,by,r,alpha){
+    ctx.save();ctx.globalAlpha=alpha||1;
+    ctx.beginPath();ctx.arc(bx,by,r,0,Math.PI*2);ctx.fillStyle='#f5f5f0';ctx.fill();
+    ctx.strokeStyle='rgba(200,45,45,0.75)';ctx.lineWidth=r*0.09;
+    ctx.beginPath();ctx.arc(bx,by,r*0.52,-0.55,0.55);ctx.stroke();
+    ctx.beginPath();ctx.arc(bx,by,r*0.52,Math.PI-0.55,Math.PI+0.55);ctx.stroke();
+    ctx.restore();
+  }
+  // バット
+  function bat(x1,y1,x2,y2,alpha){
+    ctx.save();ctx.globalAlpha=alpha||1;
+    var angle=Math.atan2(y2-y1,x2-x1),len=Math.sqrt((x2-x1)**2+(y2-y1)**2);
+    ctx.translate(x1,y1);ctx.rotate(angle);
+    var bg=ctx.createLinearGradient(0,0,len,0);
+    bg.addColorStop(0,'#6b3e1e');bg.addColorStop(0.25,'#a86830');bg.addColorStop(1,'#dea84a');
+    ctx.beginPath();ctx.moveTo(0,-9);ctx.lineTo(len*0.28,-10);ctx.lineTo(len,-26);
+    ctx.lineTo(len,26);ctx.lineTo(len*0.28,10);ctx.lineTo(0,9);ctx.closePath();
+    ctx.fillStyle=bg;ctx.fill();
+    ctx.beginPath();ctx.ellipse(0,0,14,18,0,0,Math.PI*2);ctx.fillStyle='#4a2810';ctx.fill();
+    ctx.restore();
+  }
+  // グローブ
+  function glove(gx,gy,r,alpha){
+    ctx.save();ctx.globalAlpha=alpha||1;ctx.translate(gx,gy);
+    var col='#8B4513',col2='#6b320e';
+    ctx.beginPath();ctx.ellipse(0,4,r*0.75,r*0.65,0,0,Math.PI*2);ctx.fillStyle=col;ctx.fill();
+    [{ax:-r*0.42,ay:-r*0.55,w:r*0.19,h:r*0.38},{ax:-r*0.14,ay:-r*0.65,w:r*0.19,h:r*0.40},
+     {ax:r*0.14,ay:-r*0.63,w:r*0.19,h:r*0.39},{ax:r*0.38,ay:-r*0.52,w:r*0.18,h:r*0.36}
+    ].forEach(function(f){
+      ctx.beginPath();ctx.ellipse(f.ax,f.ay,f.w,f.h,0,0,Math.PI*2);ctx.fillStyle=col;ctx.fill();
+    });
+    ctx.save();ctx.translate(-r*0.62,r*0.05);ctx.rotate(-0.55);
+    ctx.beginPath();ctx.ellipse(0,0,r*0.18,r*0.33,0,0,Math.PI*2);ctx.fillStyle=col;ctx.fill();ctx.restore();
+    ctx.beginPath();ctx.arc(0,0,r*0.38,0,Math.PI*2);ctx.fillStyle=col2;ctx.fill();
+    ctx.strokeStyle='rgba(232,184,75,0.5)';ctx.lineWidth=r*0.06;
+    ctx.beginPath();ctx.arc(0,2,r*0.28,0.3,Math.PI-0.3);ctx.stroke();
+    ctx.restore();
+  }
+  // E-3構図：グローブ・ボール・バット横並び
+  glove(ctx,s/2-130,418,56,0.88);
+  ball(ctx,s/2,418,40,0.88);
+  bat(ctx,s/2+50,468,s/2+168,376,0.88);
   document.getElementById('touch-icon').href=c.toDataURL('image/png');
 })();
 </script>
