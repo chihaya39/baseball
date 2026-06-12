@@ -1181,24 +1181,21 @@ function renderPlayerDetail(sel, players){
       var woba2 = pa>0 ? (bb*0.69 + singles_w2*0.88 + extra*1.25) / pa : 0;
       var ct2 = ab>0 ? (ab-k)/ab : 0;
       rows += '<tr style="animation:fadeUp .3s '+(i*0.05)+'s ease both"'
-        +' data-num="'+numVal+'" data-pa="'+pa+'" data-ab="'+ab+'" data-h="'+h+'" data-xbh="'+extra+'"'
-        +' data-kpct="'+kpct+'" data-bbpct="'+bbpct+'" data-avg="'+(ab>0?avg:0)+'"'
+        +' data-num="'+numVal+'" data-pa="'+pa+'" data-avg="'+(ab>0?avg:0)+'"'
         +' data-obp="'+(pa>0?obp:0)+'" data-slg="'+(ab>0?slg2:0)+'" data-ops="'+(ab>0?ops2:0)+'"'
-        +' data-babip="'+(babipDenom2>0?babip2:0)+'" data-woba="'+(pa>0?woba2:0)+'" data-ct="'+(ab>0?ct2:0)+'">'
+        +' data-bbpct="'+bbpct+'" data-kpct="'+kpct+'" data-ct="'+(ab>0?ct2:0)+'"'
+        +' data-babip="'+(babipDenom2>0?babip2:0)+'" data-woba="'+(pa>0?woba2:0)+'">'
         +'<td><span class="player-num">'+(lbl.num?'#'+lbl.num:'')+'</span> <span class="player-name">'+lbl.name+'</span><br><span style="font-size:9px;color:var(--text3)">'+orderLabel+'</span></td>'
         +'<td>'+pa+'</td>'
-        +'<td>'+ab+'</td>'
-        +'<td>'+h+'</td>'
-        +'<td>'+extra+'</td>'
-        +'<td>'+(pa>0?(kpct*100).toFixed(1):'.-')+'</td>'
-        +'<td>'+(pa>0?(bbpct*100).toFixed(1):'.-')+'</td>'
         +'<td class="'+avgCls+'">'+(ab>0?fmtAvg(avg):'.-')+'</td>'
         +'<td>'+(pa>0?fmtAvg(obp):'.-')+'</td>'
         +'<td>'+(ab>0?fmtAvg(slg2):'.-')+'</td>'
         +'<td style="color:#f6ad55">'+(ab>0?fmtOPS(ops2):'.-')+'</td>'
+        +'<td>'+(pa>0?(bbpct*100).toFixed(1):'.-')+'</td>'
+        +'<td>'+(pa>0?(kpct*100).toFixed(1):'.-')+'</td>'
+        +'<td style="color:#f587b4">'+(ab>0?(ct2*100).toFixed(1)+'%':'.-')+'</td>'
         +'<td style="color:#63b3ed">'+(babipDenom2>0?fmtAvg(babip2):'.-')+'</td>'
         +'<td style="color:#9acd78">'+(pa>0?fmtAvg(woba2):'.-')+'</td>'
-        +'<td style="color:#f587b4">'+(ab>0?(ct2*100).toFixed(1)+'%':'.-')+'</td>'
         +'</tr>';
     });
     sortKey = 'num'; sortAsc = true; // デフォルト背番号昇順
@@ -1206,18 +1203,15 @@ function renderPlayerDetail(sel, players){
       +'<thead><tr>'
       +'<th onclick="sortTable(\'num\')" style="cursor:pointer" id="th-num">選手 ↕</th>'
       +'<th onclick="sortTable(\'pa\')" style="cursor:pointer" id="th-pa">PA ↕</th>'
-      +'<th onclick="sortTable(\'ab\')" style="cursor:pointer" id="th-ab">AB ↕</th>'
-      +'<th onclick="sortTable(\'h\')" style="cursor:pointer" id="th-h">H ↕</th>'
-      +'<th onclick="sortTable(\'xbh\')" style="cursor:pointer" id="th-xbh">XBH ↕</th>'
-      +'<th onclick="sortTable(\'kpct\')" style="cursor:pointer" id="th-kpct">K% ↕</th>'
-      +'<th onclick="sortTable(\'bbpct\')" style="cursor:pointer" id="th-bbpct">BB% ↕</th>'
       +'<th onclick="sortTable(\'avg\')" style="cursor:pointer" id="th-avg">AVG ↕</th>'
       +'<th onclick="sortTable(\'obp\')" style="cursor:pointer" id="th-obp">OBP ↕</th>'
       +'<th onclick="sortTable(\'slg\')" style="cursor:pointer" id="th-slg">SLG ↕</th>'
       +'<th onclick="sortTable(\'ops\')" style="cursor:pointer;color:#f6ad55" id="th-ops">OPS ↕</th>'
+      +'<th onclick="sortTable(\'bbpct\')" style="cursor:pointer" id="th-bbpct">BB% ↕</th>'
+      +'<th onclick="sortTable(\'kpct\')" style="cursor:pointer" id="th-kpct">K% ↕</th>'
+      +'<th onclick="sortTable(\'ct\')" style="cursor:pointer;color:#f587b4" id="th-ct">CT% ↕</th>'
       +'<th onclick="sortTable(\'babip\')" style="cursor:pointer;color:#63b3ed" id="th-babip">BABIP ↕</th>'
       +'<th onclick="sortTable(\'woba\')" style="cursor:pointer;color:#9acd78" id="th-woba">wOBA ↕</th>'
-      +'<th onclick="sortTable(\'ct\')" style="cursor:pointer;color:#f587b4" id="th-ct">CT% ↕</th>'
       +'</tr></thead>'
       +'<tbody>'+rows+'</tbody></table></div>';
   } else {
@@ -1462,7 +1456,7 @@ function sortTable(key){
   }
 
   // ヘッダーの矢印を更新
-  var keys = ['num','pa','ab','h','xbh','kpct','bbpct','avg','obp','slg','ops','babip','woba','ct'];
+  var keys = ['num','pa','avg','obp','slg','ops','bbpct','kpct','ct','babip','woba'];
   var fixedColors = {ops:'#f6ad55', babip:'#63b3ed', woba:'#9acd78', ct:'#f587b4'};
   keys.forEach(function(k){
     var th = document.getElementById('th-'+k);
