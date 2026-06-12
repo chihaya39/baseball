@@ -867,6 +867,7 @@ function renderOverview(){
   // setCardEval → グローバルに移動済み
 
   evalBatting(pa, ab, k, bb, avg, obp, slg, ops, '');
+  evalAdvanced(ct, babip, woba, babipDenom, ab, pa, '');
 
   // 守備集計
   var fldO=0, fldN=0, fldEc=0, fldEt=0, fldEj=0;
@@ -991,6 +992,19 @@ function evalBatting(pa, ab, kC, bbC, avg, obp, slg, ops, prefix){
     setCardEval(prefix+'kpiOBP', obp>=.350?'good':obp>=.280?'mid':'bad', obp>=.350?'✓ 優秀':obp>=.280?'△ 平均的':'✗ 低め');
     setCardEval(prefix+'kpiSLG', slg>=.400?'good':slg>=.300?'mid':'bad', slg>=.400?'✓ 優秀':slg>=.300?'△ 平均的':'✗ 低め');
     setCardEval(prefix+'kpiOPS', ops>=.750?'good':ops>=.650?'mid':'bad', ops>=.750?'✓ 優秀':ops>=.650?'△ 平均的':'✗ 低め');
+  }
+}
+
+function evalAdvanced(ct, babip, woba, babipDenom, ab, pa, prefix){
+  prefix = prefix || '';
+  if(ab > 0){
+    setCardEval(prefix+'kpiCT', ct>=.80?'good':ct>=.65?'mid':'bad', ct>=.80?'✓ 優秀':ct>=.65?'△ 平均的':'✗ 低め');
+  }
+  if(babipDenom > 0){
+    setCardEval(prefix+'kpiBABIP', babip>=.330?'good':babip>=.270?'mid':'bad', babip>=.330?'✓ 高め':babip>=.270?'△ 平均的':'✗ 低め');
+  }
+  if(pa > 0){
+    setCardEval(prefix+'kpiWOBA', woba>=.350?'good':woba>=.300?'mid':'bad', woba>=.350?'✓ 優秀':woba>=.300?'△ 平均的':'✗ 低め');
   }
 }
 
