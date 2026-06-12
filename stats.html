@@ -343,27 +343,30 @@ main{position:relative;z-index:1;padding:16px;padding-bottom:40px}
 
 <!-- ========== OVERVIEW TAB ========== -->
 <div class="panel active" id="panel-overview">
-  <div class="sec-label">チーム打撃</div>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+    <div class="sec-label" style="margin-bottom:0">チーム打撃</div>
+    <button onclick="document.getElementById('glossaryModal').style.display='flex'" style="background:rgba(232,184,75,0.12);border:1px solid rgba(232,184,75,0.35);color:#e8b84b;border-radius:14px;padding:4px 12px;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:.04em">📖 指標の説明</button>
+  </div>
+  <!-- 行1: PA / AVG / OBP / SLG -->
   <div class="kpi-grid wide" style="margin-bottom:8px">
     <div class="kpi-card"><div class="kpi-val" style="color:var(--text)" id="kpiPA">0</div><div class="kpi-label" style="color:var(--text2)">打席 PA</div></div>
-    <div class="kpi-card"><div class="kpi-val" style="color:var(--text)" id="kpiAB">0</div><div class="kpi-label" style="color:var(--text2)">打数 AB</div></div>
-    <div class="kpi-card" ><div class="kpi-val" style="color:var(--red)" id="kpiK">0</div><div class="kpi-label" style="color:var(--text2)">三振 K <span id="kpiKpct" style="color:var(--red);font-size:11px;margin-left:6px"></span></div></div>
-    <div class="kpi-card" ><div class="kpi-val" style="color:var(--purple)" id="kpiBB">0</div><div class="kpi-label" style="color:var(--text2)">四死球 <span id="kpiBBpct" style="color:var(--purple);font-size:11px;margin-left:6px"></span></div></div>
-  </div>
-  <div class="kpi-grid wide" style="margin-bottom:8px">
-    <div class="kpi-card green"><div class="kpi-val" id="kpiH">0</div><div class="kpi-label">安打 H</div></div>
-    <div class="kpi-card"><div class="kpi-val" style="color:var(--green)" id="kpiExtra">0</div><div class="kpi-label" style="color:var(--text2)">長打 XBH</div></div>
-    <div class="kpi-card"><div class="kpi-val" style="color:var(--gold)" id="kpiRBI">0</div><div class="kpi-label" style="color:var(--text2)">打点 RBI</div></div>
-    <div class="kpi-card"><div class="kpi-val" style="color:var(--green)" id="kpiSB">0</div><div class="kpi-label" style="color:var(--text2)">盗塁 SB</div></div>
-  </div>
-  <div class="kpi-grid wide" style="margin-bottom:16px">
     <div class="kpi-card gold"><div class="kpi-val" id="kpiAvg">.---</div><div class="kpi-label">打率 AVG</div></div>
     <div class="kpi-card blue"><div class="kpi-val" id="kpiOBP">.---</div><div class="kpi-label">出塁率 OBP</div></div>
     <div class="kpi-card purple"><div class="kpi-val" id="kpiSLG">.---</div><div class="kpi-label">長打率 SLG</div></div>
+  </div>
+  <!-- 行2: OPS / BB% / K% / CT% -->
+  <div class="kpi-grid wide" style="margin-bottom:8px">
     <div class="kpi-card" style="border-color:rgba(232,184,75,0.6);background:rgba(232,184,75,0.1)"><div class="kpi-val" style="color:var(--accent)" id="kpiOPS">.---</div><div class="kpi-label" style="color:var(--accent)">OPS</div></div>
+    <div class="kpi-card"><div class="kpi-val" style="color:var(--purple)" id="kpiBB">0</div><div class="kpi-label" style="color:var(--text2)">四死球 <span id="kpiBBpct" style="color:var(--purple);font-size:11px;margin-left:6px"></span></div></div>
+    <div class="kpi-card"><div class="kpi-val" style="color:var(--red)" id="kpiK">0</div><div class="kpi-label" style="color:var(--text2)">三振 K <span id="kpiKpct" style="color:var(--red);font-size:11px;margin-left:6px"></span></div></div>
+    <div class="kpi-card" style="border-color:rgba(245,135,180,0.5);background:rgba(245,135,180,0.08)"><div class="kpi-val" style="color:#f587b4" id="kpiCT">.---</div><div class="kpi-label" style="color:#f587b4">コンタクト率</div></div>
+  </div>
+  <!-- 行3: BABIP / wOBA / H / SB -->
+  <div class="kpi-grid wide" style="margin-bottom:16px">
     <div class="kpi-card" style="border-color:rgba(99,179,237,0.5);background:rgba(99,179,237,0.08)"><div class="kpi-val" style="color:#63b3ed" id="kpiBABIP">.---</div><div class="kpi-label" style="color:#63b3ed">BABIP</div></div>
     <div class="kpi-card" style="border-color:rgba(154,205,120,0.5);background:rgba(154,205,120,0.08)"><div class="kpi-val" style="color:#9acd78" id="kpiWOBA">.---</div><div class="kpi-label" style="color:#9acd78">wOBA</div></div>
-    <div class="kpi-card" style="border-color:rgba(245,135,180,0.5);background:rgba(245,135,180,0.08)"><div class="kpi-val" style="color:#f587b4" id="kpiCT">.---</div><div class="kpi-label" style="color:#f587b4">コンタクト率</div></div>
+    <div class="kpi-card green"><div class="kpi-val" id="kpiH">0</div><div class="kpi-label">安打 H</div></div>
+    <div class="kpi-card"><div class="kpi-val" style="color:var(--green)" id="kpiSB">0</div><div class="kpi-label" style="color:var(--text2)">盗塁 SB</div></div>
   </div>
 
   <div class="sec-label">チーム守備</div>
