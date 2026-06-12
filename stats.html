@@ -885,7 +885,7 @@ function renderOverview(){
   // 守備評価
   if(fldTot > 0){
     var eRate = fldE/fldTot*100;
-    setCardEval('ovFldErate', eRate<=5?'good':eRate<=10?'mid':'bad', eRate<=5?'✓ 堅守':eRate<=10?'△ 平均的':'✗ 要改善');
+    setCardEval('ovFldErate', eRate<=5?'good':eRate<=10?'mid':'bad', eRate<=5?'✓ 少ない':eRate<=10?'△ 平均的':'✗ 多め');
   }
 
   // 投手集計
@@ -912,9 +912,9 @@ function renderOverview(){
     var eraV2  = parseFloat(calcERA(pitR, pitO));
     var whipV2 = (pitBB+pitH)/(pitO/3);
     var kbbV2  = pitBB>0 ? pitK/pitBB : null;
-    setCardEval('ovPitERA',  eraV2<=3?'good':eraV2<=5?'mid':'bad',   eraV2<=3?'✓ 優秀':eraV2<=5?'△ 平均的':'✗ 要改善');
-    setCardEval('ovPitWHIP', whipV2<=1.2?'good':whipV2<=1.6?'mid':'bad', whipV2<=1.2?'✓ 優秀':whipV2<=1.6?'△ 平均的':'✗ 要改善');
-    if(kbbV2!==null) setCardEval('ovPitKBB', kbbV2>=2?'good':kbbV2>=1?'mid':'bad', kbbV2>=2?'✓ 優秀':kbbV2>=1?'△ 平均的':'✗ 要改善');
+    setCardEval('ovPitERA',  eraV2<=3?'good':eraV2<=5?'mid':'bad',   eraV2<=3?'✓ 優秀':eraV2<=5?'△ 平均的':'✗ 高め');
+    setCardEval('ovPitWHIP', whipV2<=1.2?'good':whipV2<=1.6?'mid':'bad', whipV2<=1.2?'✓ 優秀':whipV2<=1.6?'△ 平均的':'✗ 高め');
+    if(kbbV2!==null) setCardEval('ovPitKBB', kbbV2>=2?'good':kbbV2>=1?'mid':'bad', kbbV2>=2?'✓ 優秀':kbbV2>=1?'△ 平均的':'✗ 低め');
   }
 
   // 打球種別バー
@@ -1007,6 +1007,19 @@ function evalAdvanced(ct, babip, woba, babipDenom, ab, pa, prefix){
     setCardEval(prefix+'kpiWOBA', woba>=.350?'good':woba>=.300?'mid':'bad', woba>=.350?'✓ 優秀':woba>=.300?'△ 平均的':'✗ 低め');
   }
 }
+
+// カード内評価コメントHTML生成（動的カード用）
+function evalTag(grade, comment){
+  var color = grade==='good'?'var(--green)':grade==='mid'?'var(--gold)':'var(--red)';
+  return '<div style="font-size:10px;color:'+color+';margin-top:3px">'+comment+'</div>';
+}
+function eRateEval(eRateNum){ return eRateNum<=5?evalTag('good','✓ 少ない'):eRateNum<=10?evalTag('mid','△ 平均的'):evalTag('bad','✗ 多め'); }
+function eraEval(v){ var n=parseFloat(v); return isNaN(n)?'':n<=3?evalTag('good','✓ 優秀'):n<=5?evalTag('mid','△ 平均的'):evalTag('bad','✗ 高め'); }
+function whipEval(v){ var n=parseFloat(v); return isNaN(n)?'':n<=1.2?evalTag('good','✓ 優秀'):n<=1.6?evalTag('mid','△ 平均的'):evalTag('bad','✗ 高め'); }
+function kbbEval(v){ var n=parseFloat(v); return isNaN(n)?'':n>=2?evalTag('good','✓ 優秀'):n>=1?evalTag('mid','△ 平均的'):evalTag('bad','✗ 低め'); }
+function k7Eval(v){ var n=parseFloat(v); return isNaN(n)?'':n>=7?evalTag('good','✓ 多い'):n>=4?evalTag('mid','△ 平均的'):evalTag('bad','✗ 少ない'); }
+function bb7Eval(v){ var n=parseFloat(v); return isNaN(n)?'':n<=2?evalTag('good','✓ 少ない'):n<=4?evalTag('mid','△ 平均的'):evalTag('bad','✗ 多め'); }
+function h7Eval(v){ var n=parseFloat(v); return isNaN(n)?'':n<=6?evalTag('good','✓ 少ない'):n<=9?evalTag('mid','△ 平均的'):evalTag('bad','✗ 多め'); }
 
 function fmtAvg(v){ return '.'+Math.round(v*1000).toString().padStart(3,'0'); }
 var _heatMode = 'pa';
@@ -1942,12 +1955,13 @@ function renderFieldingDetail(sel, players){
     });
     var totE=totEc+totEt+totEj;
     var totPlay=totO+totN+totE;
-    var eRate=totPlay>0?(totE/totPlay*100).toFixed(1)+'%':'-';
+    var eRateNum = totPlay>0?(totE/totPlay*100):null;
+    var eRate=eRateNum!==null?eRateNum.toFixed(1)+'%':'-';
     var teamKpi='<div class="kpi-grid wide" style="margin-bottom:16px">'
       +'<div class="kpi-card green"><div class="kpi-val">'+totO+'</div><div class="kpi-label">アウト関与</div></div>'
       +'<div class="kpi-card" style="border-color:rgba(245,101,101,0.3);background:rgba(245,101,101,0.06)"><div class="kpi-val" style="color:var(--red)">'+totE+'</div><div class="kpi-label">エラー計</div></div>'
       +'<div class="kpi-card"><div class="kpi-val" style="color:var(--text2)">'+totN+'</div><div class="kpi-label">関与・非アウト</div></div>'
-      +'<div class="kpi-card purple"><div class="kpi-val">'+eRate+'</div><div class="kpi-label">エラー率</div></div>'
+      +'<div class="kpi-card purple"><div class="kpi-val">'+eRate+'</div><div class="kpi-label">エラー率</div>'+(eRateNum!==null?eRateEval(eRateNum):'')+'</div>'
       +'</div>';
     if(rows.length===0){wrap.innerHTML=teamKpi+'<div class="empty"><div class="empty-icon">🧤</div><div class="empty-title">守備データなし</div></div>';return;}
 
@@ -1990,11 +2004,12 @@ function renderFieldingDetail(sel, players){
     var p=bd[sel];
     if(!p){wrap.innerHTML='<div class="empty"><div class="empty-icon">🧤</div><div class="empty-title">データなし</div></div>';return;}
     var o=p.fldO||0,n=p.fldN||0,ec=p.fldEc||0,et=p.fldEt||0,ej=p.fldEj||0,e=ec+et+ej,tot=o+n+e;
+    var eRateNum2=tot>0?(e/tot*100):null;
     var kpiHtml='<div class="kpi-grid wide" style="margin-bottom:16px">'
       +'<div class="kpi-card green"><div class="kpi-val">'+o+'</div><div class="kpi-label">アウト関与 O</div></div>'
       +'<div class="kpi-card" style="border-color:rgba(245,101,101,0.3);background:rgba(245,101,101,0.06)"><div class="kpi-val" style="color:var(--red)">'+e+'</div><div class="kpi-label">エラー計</div></div>'
       +'<div class="kpi-card"><div class="kpi-val" style="color:var(--text2)">'+n+'</div><div class="kpi-label">関与・非アウト N</div></div>'
-      +'<div class="kpi-card purple"><div class="kpi-val">'+(tot>0?(e/tot*100).toFixed(1)+'%':'-')+'</div><div class="kpi-label">エラー率</div></div>'
+      +'<div class="kpi-card purple"><div class="kpi-val">'+(eRateNum2!==null?eRateNum2.toFixed(1)+'%':'-')+'</div><div class="kpi-label">エラー率</div>'+(eRateNum2!==null?eRateEval(eRateNum2):'')+'</div>'
       +'</div>';
     var errBarHtml='';
     if(e>0){
@@ -2089,9 +2104,9 @@ function renderPitchingDetail(sel, pitchers){
     var k7V=pitRate(totK,totO), bb7V=pitRate(totBB,totO), h7V=pitRate(totH,totO);
     var teamKpi = '<div class="kpi-grid wide" style="margin-bottom:8px">'
       +'<div class="kpi-card blue"><div class="kpi-val">'+toIP(totO)+'</div><div class="kpi-label">投球回 IP</div></div>'
-      +'<div class="kpi-card gold"><div class="kpi-val" style="'+eraCls(eraV)+'">'+eraV+'</div><div class="kpi-label">防御率 ERA</div></div>'
-      +'<div class="kpi-card"><div class="kpi-val" style="'+whipCls(whipV)+'">'+whipV+'</div><div class="kpi-label">WHIP</div></div>'
-      +'<div class="kpi-card"><div class="kpi-val" style="color:var(--blue)">'+kbbV+'</div><div class="kpi-label">K/BB</div></div>'
+      +'<div class="kpi-card gold"><div class="kpi-val" style="'+eraCls(eraV)+'">'+eraV+'</div><div class="kpi-label">防御率 ERA</div>'+eraEval(eraV)+'</div>'
+      +'<div class="kpi-card"><div class="kpi-val" style="'+whipCls(whipV)+'">'+whipV+'</div><div class="kpi-label">WHIP</div>'+whipEval(whipV)+'</div>'
+      +'<div class="kpi-card"><div class="kpi-val" style="color:var(--blue)">'+kbbV+'</div><div class="kpi-label">K/BB</div>'+kbbEval(kbbV)+'</div>'
       +'</div>'
       +'<div class="kpi-grid wide" style="margin-bottom:8px">'
       +'<div class="kpi-card green"><div class="kpi-val">'+totK+'</div><div class="kpi-label">奪三振 K</div></div>'
@@ -2100,9 +2115,9 @@ function renderPitchingDetail(sel, pitchers){
       +'<div class="kpi-card" style="border-color:rgba(245,101,101,0.3);background:rgba(245,101,101,0.06)"><div class="kpi-val" style="color:var(--red)">'+totR+'</div><div class="kpi-label">失点 R</div></div>'
       +'</div>'
       +'<div class="kpi-grid wide" style="margin-bottom:16px">'
-      +'<div class="kpi-card green"><div class="kpi-val" >'+k7V+'</div><div class="kpi-label">奪三振率 K/7</div></div>'
-      +'<div class="kpi-card purple"><div class="kpi-val" >'+bb7V+'</div><div class="kpi-label">与四死球率 BB/7</div></div>'
-      +'<div class="kpi-card"><div class="kpi-val" style="color:var(--text2)">'+h7V+'</div><div class="kpi-label">被安打率 H/7</div></div>'
+      +'<div class="kpi-card green"><div class="kpi-val">'+k7V+'</div><div class="kpi-label">奪三振率 K/7</div>'+k7Eval(k7V)+'</div>'
+      +'<div class="kpi-card purple"><div class="kpi-val">'+bb7V+'</div><div class="kpi-label">与四死球率 BB/7</div>'+bb7Eval(bb7V)+'</div>'
+      +'<div class="kpi-card"><div class="kpi-val" style="color:var(--text2)">'+h7V+'</div><div class="kpi-label">被安打率 H/7</div>'+h7Eval(h7V)+'</div>'
       +'<div class="kpi-card" style="opacity:0.3"><div class="kpi-val">—</div><div class="kpi-label"> </div></div>'
       +'</div>';
     if(rows.length===0){wrap.innerHTML=teamKpi+'<div class="empty"><div class="empty-icon">⚾</div><div class="empty-title">投手データなし</div></div>';return;}
@@ -2149,9 +2164,9 @@ function renderPitchingDetail(sel, pitchers){
     var k7V=pitRate(k,o), bb7V=pitRate(bb,o), h7V=pitRate(h,o);
     var kpiHtml = '<div class="kpi-grid wide" style="margin-bottom:8px">'
       +'<div class="kpi-card blue"><div class="kpi-val">'+toIP(o)+'</div><div class="kpi-label">投球回 IP</div></div>'
-      +'<div class="kpi-card gold"><div class="kpi-val" style="'+eraCls(eraV)+'">'+eraV+'</div><div class="kpi-label">防御率 ERA</div></div>'
-      +'<div class="kpi-card"><div class="kpi-val" style="'+whipCls(whipV)+'">'+whipV+'</div><div class="kpi-label">WHIP</div></div>'
-      +'<div class="kpi-card"><div class="kpi-val" style="color:var(--blue)">'+kbbV+'</div><div class="kpi-label">K/BB</div></div>'
+      +'<div class="kpi-card gold"><div class="kpi-val" style="'+eraCls(eraV)+'">'+eraV+'</div><div class="kpi-label">防御率 ERA</div>'+eraEval(eraV)+'</div>'
+      +'<div class="kpi-card"><div class="kpi-val" style="'+whipCls(whipV)+'">'+whipV+'</div><div class="kpi-label">WHIP</div>'+whipEval(whipV)+'</div>'
+      +'<div class="kpi-card"><div class="kpi-val" style="color:var(--blue)">'+kbbV+'</div><div class="kpi-label">K/BB</div>'+kbbEval(kbbV)+'</div>'
       +'</div>'
       +'<div class="kpi-grid wide" style="margin-bottom:8px">'
       +'<div class="kpi-card green"><div class="kpi-val">'+k+'</div><div class="kpi-label">奪三振 K</div></div>'
@@ -2160,9 +2175,9 @@ function renderPitchingDetail(sel, pitchers){
       +'<div class="kpi-card" style="border-color:rgba(245,101,101,0.3);background:rgba(245,101,101,0.06)"><div class="kpi-val" style="color:var(--red)">'+r+'</div><div class="kpi-label">失点 R</div></div>'
       +'</div>'
       +'<div class="kpi-grid wide" style="margin-bottom:16px">'
-      +'<div class="kpi-card green"><div class="kpi-val" >'+k7V+'</div><div class="kpi-label">奪三振率 K/7</div></div>'
-      +'<div class="kpi-card purple"><div class="kpi-val" >'+bb7V+'</div><div class="kpi-label">与四死球率 BB/7</div></div>'
-      +'<div class="kpi-card"><div class="kpi-val" style="color:var(--text2)">'+h7V+'</div><div class="kpi-label">被安打率 H/7</div></div>'
+      +'<div class="kpi-card green"><div class="kpi-val">'+k7V+'</div><div class="kpi-label">奪三振率 K/7</div>'+k7Eval(k7V)+'</div>'
+      +'<div class="kpi-card purple"><div class="kpi-val">'+bb7V+'</div><div class="kpi-label">与四死球率 BB/7</div>'+bb7Eval(bb7V)+'</div>'
+      +'<div class="kpi-card"><div class="kpi-val" style="color:var(--text2)">'+h7V+'</div><div class="kpi-label">被安打率 H/7</div>'+h7Eval(h7V)+'</div>'
       +'<div class="kpi-card" style="opacity:0.3"><div class="kpi-val">—</div><div class="kpi-label"> </div></div>'
       +'</div>';
     var tot=o||1;
