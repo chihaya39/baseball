@@ -5,7 +5,37 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="長束STATS">
-<link rel="apple-touch-icon" id="touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==">
+<link rel="apple-touch-icon" id="touch-icon">
+<script>
+// アイコンをheadで即時生成（iOSキャッシュ対策）
+(function(){
+  var c=document.createElement('canvas');c.width=c.height=512;
+  var ctx=c.getContext('2d');if(!ctx)return;
+  var s=512;
+  function rr(x,y,w,h,r){
+    ctx.beginPath();ctx.moveTo(x+r,y);
+    ctx.lineTo(x+w-r,y);ctx.arcTo(x+w,y,x+w,y+r,r);
+    ctx.lineTo(x+w,y+h-r);ctx.arcTo(x+w,y+h,x+w-r,y+h,r);
+    ctx.lineTo(x+r,y+h);ctx.arcTo(x,y+h,x,y+h-r,r);
+    ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);ctx.closePath();
+  }
+  rr(0,0,s,s,91);ctx.fillStyle='#1a2744';ctx.fill();
+  rr(22,22,s-44,s-44,72);ctx.strokeStyle='rgba(232,184,75,0.45)';ctx.lineWidth=7;ctx.stroke();
+  var grd=ctx.createRadialGradient(s/2,s*0.6,0,s/2,s*0.6,s*0.5);
+  grd.addColorStop(0,'rgba(232,184,75,0.10)');grd.addColorStop(1,'rgba(232,184,75,0)');
+  rr(0,0,s,s,91);ctx.fillStyle=grd;ctx.fill();
+  ctx.textAlign='center';
+  ctx.font='800 74px -apple-system,sans-serif';ctx.fillStyle='#e8b84b';ctx.fillText('長束',s/2,165);
+  ctx.font='900 125px -apple-system,sans-serif';ctx.fillStyle='#ffffff';ctx.fillText('STATS',s/2,300);
+  // ボール
+  var bx=s/2,by=418,r=40;
+  ctx.beginPath();ctx.arc(bx,by,r,0,Math.PI*2);ctx.fillStyle='#f5f5f0';ctx.fill();
+  ctx.strokeStyle='rgba(200,45,45,0.75)';ctx.lineWidth=r*0.09;
+  ctx.beginPath();ctx.arc(bx,by,r*0.52,-0.55,0.55);ctx.stroke();
+  ctx.beginPath();ctx.arc(bx,by,r*0.52,Math.PI-0.55,Math.PI+0.55);ctx.stroke();
+  document.getElementById('touch-icon').href=c.toDataURL('image/png');
+})();
+</script>
 <title>長束STATS</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+JP:wght@300;400;500;700&display=swap');
