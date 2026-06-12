@@ -854,11 +854,11 @@ function renderOverview(){
   document.getElementById('kpiCT').textContent = ab>0 ? (ct*100).toFixed(1)+'%' : '--';
   document.getElementById('kpiH').textContent = hits;
   document.getElementById('kpiPA').textContent = pa;
-  document.getElementById('kpiAB').textContent = ab;
+  var elAB = document.getElementById('kpiAB'); if(elAB) elAB.textContent = ab;
   document.getElementById('kpiK').textContent = k;
   document.getElementById('kpiBB').textContent = bb;
   document.getElementById('kpiRBI').textContent = totalRbi;
-  document.getElementById('kpiExtra').textContent = extra;
+  var elExtra = document.getElementById('kpiExtra'); if(elExtra) elExtra.textContent = extra;
   document.getElementById('kpiSB').textContent = totalSB;
   document.getElementById('kpiKpct').textContent = pa>0 ? (k/pa*100).toFixed(1)+'%' : '';
   document.getElementById('kpiBBpct').textContent = pa>0 ? (bb/pa*100).toFixed(1)+'%' : '';
