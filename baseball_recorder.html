@@ -713,6 +713,9 @@ function advanceInning(side){
   renderLog('runLog', runLogs);
   renderLog('fldLog', fldLogs);
   renderLog('pitLog', pitLogs);
+  // チェンジ後のグレーアウト更新
+  var isAttackingAfter = isSenkou ? isOmote : !isOmote;
+  switchTab(isAttackingAfter ? 'batting' : 'pitcher');
 }
 
 function showInningToast(inning, omote){
@@ -999,10 +1002,11 @@ function saveOrder(){
   pitOutCount = 0;
   updateOutDisplay();
   buildAllGrids();
+  // gameStateを先に設定してからswitchTab（グレーアウトを正しく適用するため）
+  gameState = 'playing';
   // 先攻なら打撃、後攻なら投手タブへ
   switchTab(isSenkou ? 'batting' : 'pitcher');
   saveGameToStorage();
-  gameState = 'playing';
   document.getElementById('inningSelect').style.display = '';
   var bs = document.getElementById('btnGameStart');
   if(bs){ bs.disabled=true; bs.style.opacity='0.4'; }
