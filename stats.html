@@ -2110,20 +2110,34 @@ renderOverview();
   if(!document.createElement('canvas').getContext) return;
   var c=document.createElement('canvas');c.width=c.height=512;
   var ctx=c.getContext('2d'),s=512;
+
+  // iOS Safari対応のroundRect代替
+  function rr(x,y,w,h,r){
+    ctx.beginPath();
+    ctx.moveTo(x+r,y);
+    ctx.lineTo(x+w-r,y);ctx.arcTo(x+w,y,x+w,y+r,r);
+    ctx.lineTo(x+w,y+h-r);ctx.arcTo(x+w,y+h,x+w-r,y+h,r);
+    ctx.lineTo(x+r,y+h);ctx.arcTo(x,y+h,x,y+h-r,r);
+    ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);
+    ctx.closePath();
+  }
+
   // 背景：ネイビー
-  ctx.beginPath();ctx.roundRect(0,0,s,s,91);ctx.fillStyle='#1a2744';ctx.fill();
-  // ゴールドライン
-  ctx.beginPath();ctx.roundRect(22,22,s-44,s-44,72);
+  rr(0,0,s,s,91);ctx.fillStyle='#1a2744';ctx.fill();
+  // ゴールド内枠線
+  rr(22,22,s-44,s-44,72);
   ctx.strokeStyle='rgba(232,184,75,0.45)';ctx.lineWidth=7;ctx.stroke();
   // グロー
   var grd=ctx.createRadialGradient(s/2,s*0.6,0,s/2,s*0.6,s*0.5);
   grd.addColorStop(0,'rgba(232,184,75,0.10)');grd.addColorStop(1,'rgba(232,184,75,0)');
-  ctx.beginPath();ctx.roundRect(0,0,s,s,91);ctx.fillStyle=grd;ctx.fill();
+  rr(0,0,s,s,91);ctx.fillStyle=grd;ctx.fill();
+
   // テキスト
   ctx.textAlign='center';
   ctx.font='800 74px -apple-system,sans-serif';ctx.fillStyle='#e8b84b';ctx.fillText('長束',s/2,165);
   ctx.font='900 125px -apple-system,sans-serif';ctx.fillStyle='#ffffff';ctx.fillText('STATS',s/2,300);
-  // --- ボール ---
+
+  // ボール
   function ball(bx,by,r,alpha){
     ctx.save();ctx.globalAlpha=alpha||1;
     ctx.beginPath();ctx.arc(bx,by,r,0,Math.PI*2);
@@ -2134,7 +2148,8 @@ renderOverview();
     ctx.beginPath();ctx.arc(bx,by,r*0.52,Math.PI-0.55,Math.PI+0.55);ctx.stroke();
     ctx.restore();
   }
-  // --- バット ---
+
+  // バット
   function bat(x1,y1,x2,y2,alpha){
     ctx.save();ctx.globalAlpha=alpha||1;
     var angle=Math.atan2(y2-y1,x2-x1);
@@ -2150,37 +2165,42 @@ renderOverview();
     ctx.fillStyle='#4a2810';ctx.fill();
     ctx.restore();
   }
-  // --- グローブ ---
+
+  // グローブ（roundRect不使用）
   function glove(gx,gy,r,alpha){
     ctx.save();ctx.globalAlpha=alpha||1;ctx.translate(gx,gy);
     var col='#8B4513',col2='#6b320e';
+    // 本体
     ctx.beginPath();ctx.ellipse(0,4,r*0.75,r*0.65,0,0,Math.PI*2);
     ctx.fillStyle=col;ctx.fill();
+    // 指（楕円で代替）
     var fingers=[
-      {ax:-r*0.42,ay:-r*0.38,bx:-r*0.48,by:-r*0.78,w:r*0.18},
-      {ax:-r*0.14,ay:-r*0.48,bx:-r*0.16,by:-r*0.88,w:r*0.18},
-      {ax: r*0.14,ay:-r*0.46,bx: r*0.12,by:-r*0.84,w:r*0.18},
-      {ax: r*0.38,ay:-r*0.36,bx: r*0.36,by:-r*0.72,w:r*0.17},
+      {ax:-r*0.42,ay:-r*0.55,w:r*0.19,h:r*0.38},
+      {ax:-r*0.14,ay:-r*0.65,w:r*0.19,h:r*0.40},
+      {ax: r*0.14,ay:-r*0.63,w:r*0.19,h:r*0.39},
+      {ax: r*0.38,ay:-r*0.52,w:r*0.18,h:r*0.36},
     ];
     fingers.forEach(function(f){
-      var angle=Math.atan2(f.by-f.ay,f.bx-f.ax);
-      var len=Math.sqrt((f.bx-f.ax)**2+(f.by-f.ay)**2);
-      ctx.save();ctx.translate(f.ax,f.ay);ctx.rotate(angle);
-      ctx.beginPath();ctx.roundRect(-f.w/2,-f.w/2,f.w,len+f.w/2,f.w/2);
-      ctx.fillStyle=col;ctx.fill();ctx.restore();
+      ctx.beginPath();ctx.ellipse(f.ax,f.ay,f.w,f.h,0,0,Math.PI*2);
+      ctx.fillStyle=col;ctx.fill();
     });
-    ctx.save();ctx.translate(-r*0.6,r*0.05);ctx.rotate(-0.6);
-    ctx.beginPath();ctx.ellipse(0,0,r*0.18,r*0.32,0,0,Math.PI*2);
+    // 親指
+    ctx.save();ctx.translate(-r*0.62,r*0.05);ctx.rotate(-0.55);
+    ctx.beginPath();ctx.ellipse(0,0,r*0.18,r*0.33,0,0,Math.PI*2);
     ctx.fillStyle=col;ctx.fill();ctx.restore();
+    // ポケット
     ctx.beginPath();ctx.arc(0,0,r*0.38,0,Math.PI*2);ctx.fillStyle=col2;ctx.fill();
+    // ステッチ
     ctx.strokeStyle='rgba(232,184,75,0.5)';ctx.lineWidth=r*0.06;
     ctx.beginPath();ctx.arc(0,2,r*0.28,0.3,Math.PI-0.3);ctx.stroke();
     ctx.restore();
   }
-  // E-3構図：テキスト下に横並び（512px基準）
+
+  // E-3構図：テキスト下に横並び
   glove(ctx, s/2-130, 418, 56, 0.88);
   ball(ctx,  s/2,     418, 40, 0.88);
   bat(ctx,   s/2+50,  468, s/2+168, 376, 0.88);
+
   var link=document.querySelector('link[rel="apple-touch-icon"]')||document.createElement('link');
   link.rel='apple-touch-icon';link.href=c.toDataURL('image/png');
   document.head.appendChild(link);
