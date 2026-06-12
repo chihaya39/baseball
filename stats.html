@@ -389,7 +389,10 @@ main{position:relative;z-index:1;padding:16px;padding-bottom:40px}
     <div class="kpi-card purple"><div class="kpi-val" id="ovFldErate">-</div><div class="kpi-label">エラー率</div></div>
   </div>
 
-  <div class="sec-label">チーム投手</div>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+    <div class="sec-label" style="margin-bottom:0">チーム投手</div>
+    <button onclick="document.getElementById('pitchingGlossaryModal').style.display='flex'" style="background:rgba(232,184,75,0.12);border:1px solid rgba(232,184,75,0.35);color:#e8b84b;border-radius:14px;padding:4px 12px;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:.04em">📖 指標の説明</button>
+  </div>
   <div class="kpi-grid wide" style="margin-bottom:8px">
     <div class="kpi-card blue"><div class="kpi-val" id="ovPitIP">0</div><div class="kpi-label">投球回 IP</div></div>
     <div class="kpi-card gold"><div class="kpi-val" id="ovPitERA">-</div><div class="kpi-label">防御率 ERA</div></div>
