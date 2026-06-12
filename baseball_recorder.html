@@ -602,7 +602,7 @@ function loadGameFromStorage(){
           document.getElementById('scoreBoardOppName').textContent = opp2;
           document.getElementById('scoreBoardMyScore').textContent = myS;
           document.getElementById('scoreBoardOppScore').textContent = opS;
-          document.getElementById('scoreBoardStatus').textContent = '試合終了';
+          document.getElementById('scoreBoardStatus').textContent = '終了';
           var myEl=document.getElementById('scoreBoardMyScore');
           var opEl=document.getElementById('scoreBoardOppScore');
           myEl.style.color = myS>opS?'#e8b84b':myS<opS?'#f56565':'#8b92a8';
@@ -1093,7 +1093,7 @@ function endGame(){
     document.getElementById('scoreBoardOppName').textContent = opp||'相手';
     document.getElementById('scoreBoardMyScore').textContent = myScore;
     document.getElementById('scoreBoardOppScore').textContent = oppScore;
-    document.getElementById('scoreBoardStatus').textContent = status||'';
+    document.getElementById('scoreBoardStatus').textContent = '終了';
     var myEl = document.getElementById('scoreBoardMyScore');
     var opEl = document.getElementById('scoreBoardOppScore');
     myEl.style.color = myScore>oppScore?'#e8b84b':myScore<oppScore?'#f56565':'#8b92a8';
