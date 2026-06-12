@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="野球集計">
-<title>野球集計</title>
+<meta name="apple-mobile-web-app-title" content="長束STATS">
+<title>長束STATS</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+JP:wght@300;400;500;700&display=swap');
 
@@ -362,6 +362,7 @@ main{position:relative;z-index:1;padding:16px;padding-bottom:40px}
     <div class="kpi-card" style="border-color:rgba(232,184,75,0.6);background:rgba(232,184,75,0.1)"><div class="kpi-val" style="color:var(--accent)" id="kpiOPS">.---</div><div class="kpi-label" style="color:var(--accent)">OPS</div></div>
     <div class="kpi-card" style="border-color:rgba(99,179,237,0.5);background:rgba(99,179,237,0.08)"><div class="kpi-val" style="color:#63b3ed" id="kpiBABIP">.---</div><div class="kpi-label" style="color:#63b3ed">BABIP</div></div>
     <div class="kpi-card" style="border-color:rgba(154,205,120,0.5);background:rgba(154,205,120,0.08)"><div class="kpi-val" style="color:#9acd78" id="kpiWOBA">.---</div><div class="kpi-label" style="color:#9acd78">wOBA</div></div>
+    <div class="kpi-card" style="border-color:rgba(245,135,180,0.5);background:rgba(245,135,180,0.08)"><div class="kpi-val" style="color:#f587b4" id="kpiCT">.---</div><div class="kpi-label" style="color:#f587b4">コンタクト率</div></div>
   </div>
 
   <div class="sec-label">チーム守備</div>
@@ -774,6 +775,9 @@ function renderOverview(){
   var singles_w = hits - extra;
   var woba = pa > 0 ? (bb*0.69 + singles_w*0.88 + extra*1.25) / pa : 0;
   document.getElementById('kpiWOBA').textContent = pa>0 ? fmtAvg(woba) : '.---';
+  // コンタクト率 = (打数 - 三振) / 打数
+  var ct = ab > 0 ? (ab - k) / ab : 0;
+  document.getElementById('kpiCT').textContent = ab>0 ? (ct*100).toFixed(1)+'%' : '--';
   document.getElementById('kpiH').textContent = hits;
   document.getElementById('kpiPA').textContent = pa;
   document.getElementById('kpiAB').textContent = ab;
@@ -1173,11 +1177,12 @@ function renderPlayerDetail(sel, players){
       var babip2 = babipDenom2>0 ? h/babipDenom2 : 0;
       var singles_w2 = h - extra;
       var woba2 = pa>0 ? (bb*0.69 + singles_w2*0.88 + extra*1.25) / pa : 0;
+      var ct2 = ab>0 ? (ab-k)/ab : 0;
       rows += '<tr style="animation:fadeUp .3s '+(i*0.05)+'s ease both"'
         +' data-num="'+numVal+'" data-pa="'+pa+'" data-ab="'+ab+'" data-h="'+h+'" data-xbh="'+extra+'"'
         +' data-kpct="'+kpct+'" data-bbpct="'+bbpct+'" data-avg="'+(ab>0?avg:0)+'"'
         +' data-obp="'+(pa>0?obp:0)+'" data-slg="'+(ab>0?slg2:0)+'" data-ops="'+(ab>0?ops2:0)+'"'
-        +' data-babip="'+(babipDenom2>0?babip2:0)+'" data-woba="'+(pa>0?woba2:0)+'">'
+        +' data-babip="'+(babipDenom2>0?babip2:0)+'" data-woba="'+(pa>0?woba2:0)+'" data-ct="'+(ab>0?ct2:0)+'">'
         +'<td><span class="player-num">'+(lbl.num?'#'+lbl.num:'')+'</span> <span class="player-name">'+lbl.name+'</span><br><span style="font-size:9px;color:var(--text3)">'+orderLabel+'</span></td>'
         +'<td>'+pa+'</td>'
         +'<td>'+ab+'</td>'
@@ -1191,6 +1196,7 @@ function renderPlayerDetail(sel, players){
         +'<td style="color:#f6ad55">'+(ab>0?fmtOPS(ops2):'.-')+'</td>'
         +'<td style="color:#63b3ed">'+(babipDenom2>0?fmtAvg(babip2):'.-')+'</td>'
         +'<td style="color:#9acd78">'+(pa>0?fmtAvg(woba2):'.-')+'</td>'
+        +'<td style="color:#f587b4">'+(ab>0?(ct2*100).toFixed(1)+'%':'.-')+'</td>'
         +'</tr>';
     });
     sortKey = 'num'; sortAsc = true; // デフォルト背番号昇順
@@ -1209,6 +1215,7 @@ function renderPlayerDetail(sel, players){
       +'<th onclick="sortTable(\'ops\')" style="cursor:pointer;color:#f6ad55" id="th-ops">OPS ↕</th>'
       +'<th onclick="sortTable(\'babip\')" style="cursor:pointer;color:#63b3ed" id="th-babip">BABIP ↕</th>'
       +'<th onclick="sortTable(\'woba\')" style="cursor:pointer;color:#9acd78" id="th-woba">wOBA ↕</th>'
+      +'<th onclick="sortTable(\'ct\')" style="cursor:pointer;color:#f587b4" id="th-ct">CT% ↕</th>'
       +'</tr></thead>'
       +'<tbody>'+rows+'</tbody></table></div>';
   } else {
@@ -1270,6 +1277,7 @@ function renderPlayerDetail(sel, players){
       +'<div class="kpi-card" style="border-color:rgba(246,173,85,0.5);background:rgba(246,173,85,0.08)"><div id="p_kpiOPS" class="kpi-val" style="color:'+(ops>=1.0?'#f6ad55':ops>=0.7?'#ed8936':'var(--text2)')+'">'+fmtOPS(ops)+'</div><div class="kpi-label" style="color:#f6ad55">OPS</div></div>'
       +(function(){ var bd2=ab-kC; var bv=bd2>0?hList.length/bd2:0; return '<div class="kpi-card" style="border-color:rgba(99,179,237,0.5);background:rgba(99,179,237,0.08)"><div id="p_kpiBABIP" class="kpi-val" style="color:#63b3ed">'+(bd2>0?fmtAvg(bv):'.-')+'</div><div class="kpi-label" style="color:#63b3ed">BABIP</div></div>'; })(  )
       +(function(){ var s=hList.filter(function(x){return !x.p.extra;}).length; var wv=pa>0?(bbC*0.69+s*0.88+extras*1.25)/pa:0; return '<div class="kpi-card" style="border-color:rgba(154,205,120,0.5);background:rgba(154,205,120,0.08)"><div id="p_kpiWOBA" class="kpi-val" style="color:#9acd78">'+(pa>0?fmtAvg(wv):'.-')+'</div><div class="kpi-label" style="color:#9acd78">wOBA</div></div>'; })(  )
+      +(function(){ var cv=ab>0?(ab-kC)/ab:0; return '<div class="kpi-card" style="border-color:rgba(245,135,180,0.5);background:rgba(245,135,180,0.08)"><div id="p_kpiCT" class="kpi-val" style="color:#f587b4">'+(ab>0?(cv*100).toFixed(1)+'%':'.-')+'</div><div class="kpi-label" style="color:#f587b4">コンタクト率</div></div>'; })(  )
       +'</div>';
 
     // 打球種別ドーナツ
@@ -1452,8 +1460,8 @@ function sortTable(key){
   }
 
   // ヘッダーの矢印を更新
-  var keys = ['num','pa','ab','h','xbh','kpct','bbpct','avg','obp','slg','ops','babip','woba'];
-  var fixedColors = {ops:'#f6ad55', babip:'#63b3ed', woba:'#9acd78'};
+  var keys = ['num','pa','ab','h','xbh','kpct','bbpct','avg','obp','slg','ops','babip','woba','ct'];
+  var fixedColors = {ops:'#f6ad55', babip:'#63b3ed', woba:'#9acd78', ct:'#f587b4'};
   keys.forEach(function(k){
     var th = document.getElementById('th-'+k);
     if(!th) return;
