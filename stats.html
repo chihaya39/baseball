@@ -666,6 +666,7 @@ main{position:relative;z-index:1;padding:16px;padding-bottom:40px}
 var gameData = null;      // 現在フィルター中の集計データ
 var gamesData = [];       // 全試合データ配列 [{date, opponent, batData}, ...]
 var selectedGame = 'all'; // 'all' or インデックス
+var selectedGameType = 'all'; // 'all' / 'official'(大会) / 'practice'(練習試合)
 var masterData = [];
 var teamName = '長束中';
 
@@ -1848,10 +1849,27 @@ function doImport(file){
   reader.readAsArrayBuffer(file);
 }
 
+// 練習試合判定（対戦相手名に「練」を含む）
+function isPracticeGame(g){
+  return g && (g.opponent || '').indexOf('練') !== -1;
+}
+
 // 選択試合に応じてgameDataを構築
 function buildGameData(){
   var batData = {};
-  var targetGames = selectedGame === 'all' ? gamesData : [gamesData[parseInt(selectedGame)]];
+  var baseGames = selectedGame === 'all' ? gamesData : [gamesData[parseInt(selectedGame)]];
+
+  // 種別フィルター適用（個別試合選択時は種別フィルター無効）
+  var targetGames;
+  if(selectedGame !== 'all'){
+    targetGames = baseGames;
+  } else if(selectedGameType === 'practice'){
+    targetGames = baseGames.filter(function(g){ return isPracticeGame(g); });
+  } else if(selectedGameType === 'official'){
+    targetGames = baseGames.filter(function(g){ return !isPracticeGame(g); });
+  } else {
+    targetGames = baseGames;
+  }
 
   // 全試合時：最新試合（配列の最後）の背番号をマスタとして使う
   var latestNumMap = {};
@@ -1901,26 +1919,76 @@ function renderGameFilter(){
   if(!bar) return;
   if(gamesData.length === 0){ bar.style.display='none'; return; }
 
-  // 1行だけのプルダウン表示にする
+  // 練習試合・大会の振り分け
+  var hasPractice = gamesData.some(function(g){ return isPracticeGame(g); });
+  var hasOfficial = gamesData.some(function(g){ return !isPracticeGame(g); });
+
   bar.style.display = 'flex';
-  bar.style.alignItems = 'center';
-  bar.style.gap = '8px';
+  bar.style.flexDirection = 'column';
+  bar.style.gap = '6px';
   bar.style.padding = '6px 16px';
   bar.style.overflow = 'visible';
 
   var html = '';
+
+  // 種別フィルター（大会/練習試合の両方がある時だけ表示）
+  if(hasPractice && hasOfficial){
+    html += '<div style="display:flex;align-items:center;gap:6px">';
+    html += '<label style="font-size:10px;color:var(--text3);font-weight:700;letter-spacing:.08em;white-space:nowrap">種別</label>';
+    var types = [
+      {val:'all', label:'全試合'},
+      {val:'official', label:'🏆 大会のみ'},
+      {val:'practice', label:'⚾ 練習試合のみ'}
+    ];
+    types.forEach(function(t){
+      var isActive = selectedGameType === t.val;
+      var bg = isActive ? 'rgba(232,184,75,0.18)' : 'var(--bg3)';
+      var border = isActive ? 'var(--accent)' : 'var(--border)';
+      var color = isActive ? 'var(--accent)' : 'var(--text3)';
+      html += '<button onclick="selectGameType(\''+t.val+'\')" '
+           + 'style="background:'+bg+';border:1px solid '+border+';border-radius:10px;'
+           + 'color:'+color+';font-size:11px;font-weight:700;padding:5px 10px;cursor:pointer;white-space:nowrap">'
+           + t.label+'</button>';
+    });
+    html += '</div>';
+  }
+
+  // 試合絞込プルダウン
+  html += '<div style="display:flex;align-items:center;gap:8px">';
   html += '<label for="gameSelect" style="font-size:10px;color:var(--text3);font-weight:700;letter-spacing:.08em;white-space:nowrap">試合絞込</label>';
   html += '<select id="gameSelect" onchange="selectGame(this.value)" '
        + 'style="width:min(520px,calc(100vw - 110px));max-width:520px;background:#111827;border:1px solid #2a3a5a;border-radius:10px;color:#e8b84b;font-size:12px;font-weight:700;padding:7px 12px;outline:none;cursor:pointer">';
   html += '<option value="all"' + (selectedGame === 'all' ? ' selected' : '') + '>全試合</option>';
 
+  // 種別フィルターに応じてプルダウン絞り込み
   gamesData.forEach(function(g, i){
+    if(selectedGame === 'all'){
+      if(selectedGameType === 'practice' && !isPracticeGame(g)) return;
+      if(selectedGameType === 'official' && isPracticeGame(g)) return;
+    }
     var label = (g.date ? g.date + ' ' : '') + (g.opponent || '対戦相手なし');
     html += '<option value="' + i + '"' + (String(selectedGame) === String(i) ? ' selected' : '') + '>' + label + '</option>';
   });
 
   html += '</select>';
+  html += '</div>';
   bar.innerHTML = html;
+}
+
+function selectGameType(type){
+  selectedGameType = type;
+  selectedGame = 'all'; // 種別切替時は個別選択をリセット
+  selectedPlayer = 'all';
+  selectedFielder = 'all';
+  selectedPitcher = 'all';
+  buildGameData();
+  renderGameFilter();
+
+  var label = type === 'practice' ? '練習試合' : type === 'official' ? '大会' : '全試合';
+  document.getElementById('lastUpdated').textContent = label + 'を表示中';
+
+  var activePanel = panels.find(function(n){ return document.getElementById('panel-'+n).className.includes('active'); });
+  switchTab(activePanel || 'overview');
 }
 
 function selectGame(idx){
