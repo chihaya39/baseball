@@ -1931,24 +1931,34 @@ function renderGameFilter(){
 
   var html = '';
 
+  // 試合数カウント
+  var totalCount    = gamesData.length;
+  var practiceCount = gamesData.filter(function(g){ return isPracticeGame(g); }).length;
+  var officialCount = gamesData.filter(function(g){ return !isPracticeGame(g); }).length;
+
   // 種別フィルター（大会/練習試合の両方がある時だけ表示）
   if(hasPractice && hasOfficial){
-    html += '<div style="display:flex;align-items:center;gap:6px">';
+    html += '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">';
     html += '<label style="font-size:10px;color:var(--text3);font-weight:700;letter-spacing:.08em;white-space:nowrap">種別</label>';
     var types = [
-      {val:'all', label:'全試合'},
-      {val:'official', label:'🏆 大会のみ'},
-      {val:'practice', label:'⚾ 練習試合のみ'}
+      {val:'all',      emoji:'',    label:'全試合',   count: totalCount},
+      {val:'official', emoji:'🏆 ', label:'大会',     count: officialCount},
+      {val:'practice', emoji:'⚾ ', label:'練習試合', count: practiceCount}
     ];
     types.forEach(function(t){
       var isActive = selectedGameType === t.val;
-      var bg = isActive ? 'rgba(232,184,75,0.18)' : 'var(--bg3)';
-      var border = isActive ? 'var(--accent)' : 'var(--border)';
-      var color = isActive ? 'var(--accent)' : 'var(--text3)';
+      var bg         = isActive ? 'rgba(232,184,75,0.18)' : 'var(--bg3)';
+      var border     = isActive ? 'var(--accent)' : 'var(--border)';
+      var color      = isActive ? 'var(--accent)' : 'var(--text3)';
+      var countColor = isActive ? 'rgba(232,184,75,0.9)' : '#6b7590';
+      var countBg    = isActive ? 'rgba(232,184,75,0.22)' : 'rgba(255,255,255,0.07)';
+      var badge = '<span style="display:inline-block;background:'+countBg+';color:'+countColor
+                + ';font-size:10px;font-weight:800;border-radius:6px;padding:1px 5px;margin-left:4px;letter-spacing:0">'
+                + t.count+'試合</span>';
       html += '<button onclick="selectGameType(\''+t.val+'\')" '
            + 'style="background:'+bg+';border:1px solid '+border+';border-radius:10px;'
-           + 'color:'+color+';font-size:11px;font-weight:700;padding:5px 10px;cursor:pointer;white-space:nowrap">'
-           + t.label+'</button>';
+           + 'color:'+color+';font-size:11px;font-weight:700;padding:5px 10px;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center">'
+           + t.emoji+t.label+badge+'</button>';
     });
     html += '</div>';
   }
