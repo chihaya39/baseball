@@ -2146,6 +2146,7 @@ function clearAll(){
   currentPitcher=null;
   updateOutDisplay();
   clearGameStorage();
+  location.reload();
   ['batLog','runLog','fldLog','pitLog'].forEach(function(id){
     var e=document.getElementById(id);if(e)e.innerHTML='';
   });

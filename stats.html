@@ -2022,22 +2022,8 @@ function selectGame(idx){
 
 function clearImport(){
   if(!confirm('保存済みの履歴データをすべて削除しますか？\nこの操作は元に戻せません。')){return;}
-  importedData = null;
-  gamesData = [];
-  gameData = null;
-  selectedGame = 'all';
   localStorage.removeItem('baseball_history');
-  var bar = document.getElementById('gameFilterBar');
-  if(bar){ bar.style.display='none'; bar.innerHTML=''; }
-  var sel = document.getElementById('gameSelect');
-  if(sel) sel.parentNode && (sel.outerHTML='');
-  document.getElementById('importStatus').style.color = '#4a5570';
-  document.getElementById('importStatus').textContent = '集計Excelの「記録入力」シートを読み込めます';
-  document.getElementById('importClearBtn').style.display = 'none';
-  document.getElementById('xlsxInput').value = '';
-  document.getElementById('lastUpdated').textContent = 'データなし';
-  var activePanel = panels.find(function(n){ return document.getElementById('panel-'+n).className.includes('active'); });
-  switchTab(activePanel || 'overview');
+  location.reload();
 }
 
 // ============================================================
