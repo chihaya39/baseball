@@ -190,8 +190,8 @@ td:first-child{text-align:left;padding-left:4px}
 
   <div class="sl" style="margin-top:4px">試合情報</div>
   <div class="grid2" style="margin-bottom:12px">
-    <input type="date" id="gameDate">
-    <input type="text" id="opponent" placeholder="対戦相手">
+    <input type="date" id="gameDate" oninput="checkGameReady()">
+    <input type="text" id="opponent" placeholder="対戦相手" oninput="checkGameReady()">
   </div>
 
   <div class="sl">先攻 / 後攻</div>
@@ -200,7 +200,7 @@ td:first-child{text-align:left;padding-left:4px}
     <div id="btnKokou" class="batting-order-btn" onclick="setSenkoKokou('ko')">🛡 後攻（1回表が守備）</div>
   </div>
 
-  <button class="btn btn-green" id="btnGameStart" onclick="saveOrder()" style="padding:15px;font-size:16px">✓ 試合開始</button>
+  <button class="btn btn-green" id="btnGameStart" onclick="saveOrder()" style="padding:15px;font-size:16px" disabled>✓ 試合開始</button>
 
   <div style="height:20px"></div>
 
@@ -624,6 +624,7 @@ function loadGameFromStorage(){
       var op=document.getElementById('opponent');
       if(gd&&g.gameDate) gd.value=g.gameDate;
       if(op&&g.opponent) op.value=g.opponent;
+      checkGameReady();
       if(g.opponent||g.gameDate){
         document.getElementById('headerTitle').textContent='⚾ '+(g.opponent||'試合')+'戦';
         document.getElementById('headerSub').textContent=g.gameDate||(new Date().toLocaleDateString('ja-JP'));
@@ -1028,6 +1029,20 @@ function clearOrderSlot(orderKey, isSub){
   }
   saveLineupToStorage();
   renderOrderSelRows();
+}
+
+function checkGameReady(){
+  var date = document.getElementById('gameDate').value;
+  var opp  = document.getElementById('opponent').value.trim();
+  var btn  = document.getElementById('btnGameStart');
+  if(!btn) return;
+  if(date && opp){
+    btn.disabled = false;
+    btn.style.opacity = '';
+  } else {
+    btn.disabled = true;
+    btn.style.opacity = '0.35';
+  }
 }
 
 function saveOrder(){
