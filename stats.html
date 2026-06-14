@@ -1970,12 +1970,10 @@ function renderGameFilter(){
        + 'style="width:min(520px,calc(100vw - 110px));max-width:520px;background:#111827;border:1px solid #2a3a5a;border-radius:10px;color:#e8b84b;font-size:12px;font-weight:700;padding:7px 12px;outline:none;cursor:pointer">';
   html += '<option value="all"' + (selectedGame === 'all' ? ' selected' : '') + '>全試合</option>';
 
-  // 種別フィルターに応じてプルダウン絞り込み
+  // 種別フィルターに応じてプルダウン絞り込み（常に適用）
   gamesData.forEach(function(g, i){
-    if(selectedGame === 'all'){
-      if(selectedGameType === 'practice' && !isPracticeGame(g)) return;
-      if(selectedGameType === 'official' && isPracticeGame(g)) return;
-    }
+    if(selectedGameType === 'practice' && !isPracticeGame(g)) return;
+    if(selectedGameType === 'official' && isPracticeGame(g)) return;
     var label = (g.date ? g.date + ' ' : '') + (g.opponent || '対戦相手なし');
     html += '<option value="' + i + '"' + (String(selectedGame) === String(i) ? ' selected' : '') + '>' + label + '</option>';
   });
