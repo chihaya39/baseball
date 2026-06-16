@@ -263,12 +263,12 @@ td:first-child{text-align:left;padding-left:4px}
         <div class="cb" data-v="Ld" onclick="pick('type',this)">ライナー</div>
       </div>
       <div class="sl">結果</div>
-      <div class="cg2" id="resultGrid">
+      <div class="cg3" id="resultGrid">
         <div class="cb" data-v="○" onclick="pick('result',this)">○ 出塁</div>
         <div class="cb" data-v="ｘ" onclick="pick('result',this)">ｘ アウト</div>
+        <div class="cb" data-v="SAC" onclick="pick('result',this)">△ 犠打</div>
         <div class="cb" data-v="Ks" onclick="pick('result',this)">空振三振</div>
         <div class="cb" data-v="Kl" onclick="pick('result',this)">見逃三振</div>
-        <div class="cb" data-v="SAC" onclick="pick('result',this)">△ 犠打</div>
       </div>
     </div>
     <!-- ZONE 2: 付加情報 -->
@@ -1492,7 +1492,7 @@ function pick(kind,btn){
     var showObType = isHit && !hasDir;
     var showExtra  = isHit && hasDir;
 
-    var showRBI = (val==='○' || val==='ｘ');  // 三振以外は打点あり
+    var showRBI = (val==='○' || val==='ｘ' || val==='SAC');  // 三振以外は打点あり
     document.getElementById('obTypeZone').style.display = showObType ? '' : 'none';
     document.getElementById('extraZone').style.display  = showExtra  ? '' : 'none';
     document.getElementById('rbiZone').style.display    = showRBI    ? '' : 'none';
