@@ -268,6 +268,7 @@ td:first-child{text-align:left;padding-left:4px}
         <div class="cb" data-v="ｘ" onclick="pick('result',this)">ｘ アウト</div>
         <div class="cb" data-v="Ks" onclick="pick('result',this)">空振三振</div>
         <div class="cb" data-v="Kl" onclick="pick('result',this)">見逃三振</div>
+        <div class="cb" data-v="SAC" onclick="pick('result',this)">△ 犠打</div>
       </div>
     </div>
     <!-- ZONE 2: 付加情報 -->
@@ -949,7 +950,7 @@ function addSubPlayer(){
     // 既存の割り当てを削除
     lineup = lineup.filter(function(x){return x.num!==num;});
     lineup.push({order:nextKey, num:p.num, pos:p.pos, isSub:true});
-    if(!batData[p.num]) batData[p.num]={results:[],rbi:0,ab:0,pa:0,h:0,k:0,bb:0,order:nextKey,pos:p.pos};
+    if(!batData[p.num]) batData[p.num]={results:[],rbi:0,ab:0,pa:0,h:0,k:0,bb:0,sac:0,order:nextKey,pos:p.pos};
     if(!runData[p.num]) runData[p.num]={'SB+':0,'SB-':0,'PO':0,'WP':0,'PB':0};
     if(!fldData[p.num]) fldData[p.num]={O:0,N:0,Ec:0,Et:0,Ej:0};
     if(isPitcher(p)&&!pitData[p.num]) pitData[p.num]={O:0,K:0,BB:0,HBP:0,H:0,R:0};
@@ -997,7 +998,7 @@ function openPlayerPicker(orderKey, isSub){
     });
     lineup.push({order:orderKeyNorm, num:p.num, pos:p.pos, isSub:isSub});
     // データストアを初期化
-    if(!batData[p.num]) batData[p.num]={results:[],rbi:0,ab:0,pa:0,h:0,k:0,bb:0,order:orderKeyNorm,pos:p.pos};
+    if(!batData[p.num]) batData[p.num]={results:[],rbi:0,ab:0,pa:0,h:0,k:0,bb:0,sac:0,order:orderKeyNorm,pos:p.pos};
     if(!runData[p.num]) runData[p.num]={'SB+':0,'SB-':0,'PO':0,'WP':0,'PB':0};
     if(!fldData[p.num]) fldData[p.num]={O:0,N:0,Ec:0,Et:0,Ej:0};
     if(isPitcher(p)&&!pitData[p.num]) pitData[p.num]={O:0,K:0,BB:0,HBP:0,H:0,R:0};
@@ -1360,7 +1361,7 @@ function addBatSubPlayer(){
       div.onclick = (function(pp){return function(){
         batSubPlayers.push({num:pp.num, pos:pp.pos});
         // データストア初期化
-        if(!batData[pp.num]) batData[pp.num]={results:[],rbi:0,ab:0,pa:0,h:0,k:0,bb:0,order:'代',pos:pp.pos};
+        if(!batData[pp.num]) batData[pp.num]={results:[],rbi:0,ab:0,pa:0,h:0,k:0,bb:0,sac:0,order:'代',pos:pp.pos};
         if(!runData[pp.num]) runData[pp.num]={'SB+':0,'SB-':0,'PO':0,'WP':0,'PB':0};
         if(!fldData[pp.num]) fldData[pp.num]={O:0,N:0,Ec:0,Et:0,Ej:0};
         buildBatSubPlayerGrid();
@@ -1476,7 +1477,7 @@ function pickBatter(p,btn){
 
 function pick(kind,btn){
   var val=btn.dataset.v;
-  var special=['BB','HBP','Ks','Kl','B'].indexOf(val)>=0 && !btn.dataset.bunt;
+  var special=['BB','HBP','Ks','Kl','B','SAC'].indexOf(val)>=0 && !btn.dataset.bunt;
   if(kind==='result'){
     sel.result=val; sel.extra=null; sel.obtype=null;
     document.querySelectorAll('#resultGrid .cb').forEach(function(b){b.className='cb';});
@@ -1539,7 +1540,7 @@ function clearBatChoiceGroup(kind){
 
 var DIR_L={L:'レフト',C:'センター',R:'ライト'};
 var TYPE_L={G:'ゴロ',F:'フライ',Ld:'ライナー'};
-var RES_L={'○':'出塁','ｘ':'アウト','BB':'四球','HBP':'死球','Ks':'空振三振','Kl':'見逃三振','B':'バント成功'};
+var RES_L={'○':'出塁','ｘ':'アウト','BB':'四球','HBP':'死球','Ks':'空振三振','Kl':'見逞三振','B':'バント成功','SAC':'犠打'};
 
 function updateBatPreview(){
   var box=document.getElementById('batPreview');
@@ -1549,7 +1550,7 @@ function updateBatPreview(){
   if(sel.dir) html+='<span class="tag td">'+DIR_L[sel.dir]+'</span>';
   if(sel.type) html+='<span class="tag tt">'+TYPE_L[sel.type]+'</span>';
   if(sel.result){
-    var cls=sel.result==='○'?'ts':(sel.result==='ｘ'?'to':((sel.result==='Ks'||sel.result==='Kl')?'tk':'ts'));
+    var cls=sel.result==='○'?'ts':(sel.result==='ｘ'?'to':((sel.result==='Ks'||sel.result==='Kl')?'tk':(sel.result==='SAC'?'to':'ts')));
     html+='<span class="tag '+cls+'">'+(RES_L[sel.result]||sel.result)+'</span>';
     if(sel.result==='○' && sel.obtype){
       var obtypeLabel = sel.obtype==='BB'?'四球':sel.obtype==='HBP'?'死球':'';
@@ -1570,7 +1571,7 @@ function updateBatStepBar(n){
 
 function buildBatCode(){
   var r=sel.result; if(!r) return '';
-  if(r==='BB'||r==='HBP'||r==='Ks'||r==='Kl') return r;
+  if(r==='BB'||r==='HBP'||r==='Ks'||r==='Kl'||r==='SAC') return r;
   if(r==='B') return 'B';
   var code=(sel.dir||'')+(sel.type||'')+r;
   if(sel.extra) code+=sel.extra;
@@ -1583,22 +1584,24 @@ function commitBat(){
   var code=buildBatCode();
   var rbi=parseInt(document.getElementById('rbiInput').value)||0;
   var codeWithRbi=code+(rbi>0?' '+rbi+'+':'');
-  if(!batData[p.num]) batData[p.num]={results:[],rbi:0,ab:0,pa:0,h:0,k:0,bb:0,order:p.order,pos:p.pos};
+  if(!batData[p.num]) batData[p.num]={results:[],rbi:0,ab:0,pa:0,h:0,k:0,bb:0,sac:0,order:p.order,pos:p.pos};
   var s=batData[p.num];
   s.results.push(codeWithRbi);
   s.pa++;
   var obtype = sel.obtype || '';
-  var noAB = (obtype==='BB'||obtype==='HBP');
+  var isSAC = sel.result==='SAC';
+  var noAB = (obtype==='BB'||obtype==='HBP') || isSAC;
   if(!noAB) s.ab++;
   // 四球・死球は安打に加算しない
   if(sel.result==='○' && !noAB && obtype!=='BB' && obtype!=='HBP') s.h++;
   if(sel.result==='B') s.h++;
   if(sel.result==='Ks'||sel.result==='Kl') s.k++;
-  if(noAB) s.bb++;
+  if(obtype==='BB'||obtype==='HBP') s.bb++;
+  if(isSAC) s.sac=(s.sac||0)+1;
   s.rbi+=rbi;
   // アウトカウント
   var logInning = currentInning;  // チェンジ前の回を記録
-  var isOut = sel.result==='ｘ'||sel.result==='Ks'||sel.result==='Kl';
+  var isOut = sel.result==='ｘ'||sel.result==='Ks'||sel.result==='Kl'||sel.result==='SAC';
   if(isOut){
     batOutCount++;
     updateOutDisplay();
@@ -2216,10 +2219,11 @@ function undoLast(logId){
     // H/K/BBを戻す
     if(last.code==='BB'||last.code==='HBP'){ s.bb=Math.max(0,s.bb-1); s.pa=Math.max(0,s.pa); s.ab=Math.max(0,s.ab); }
     else if(last.code==='Ks'||last.code==='Kl'){ s.k=Math.max(0,s.k-1); s.ab=Math.max(0,s.ab-1); }
+    else if(last.code==='SAC'){ s.sac=Math.max(0,(s.sac||1)-1); }
     else if(last.code.indexOf('○')>=0||last.code.indexOf('o')>=0){ s.h=Math.max(0,s.h-1); s.ab=Math.max(0,s.ab-1); }
     else { s.ab=Math.max(0,s.ab-1); }
     // アウトカウントを戻す
-    if(last.code==='Ks'||last.code==='Kl'||last.code.indexOf('x')>=0||last.code.indexOf('ｘ')>=0){
+    if(last.code==='Ks'||last.code==='Kl'||last.code==='SAC'||last.code.indexOf('x')>=0||last.code.indexOf('ｘ')>=0){
       batOutCount = Math.max(0, batOutCount-1);
       updateOutDisplay();
     }
