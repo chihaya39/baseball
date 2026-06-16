@@ -204,7 +204,7 @@ td:first-child{text-align:left;padding-left:4px}
 
   <div style="height:20px"></div>
 
-  <button class="btn" id="btnGameEnd" onclick="endGame()" style="padding:12px;font-size:14px;background:var(--bg3);color:var(--text2);border:1px solid var(--border)">🏁 試合終了</button>
+  <button class="btn" id="btnGameEnd" onclick="endGame()" style="padding:12px;font-size:14px;background:var(--bg3);color:var(--text2);border:1px solid var(--border)" disabled>🏁 試合終了</button>
 
   <div style="height:1px;background:var(--border);margin:24px 0"></div>
 
@@ -515,6 +515,9 @@ function init(){
       if(op2) op2.disabled=true;
       if(sk2){ sk2.style.pointerEvents='none'; sk2.style.opacity='0.6'; }
       if(kk2){ kk2.style.pointerEvents='none'; kk2.style.opacity='0.6'; }
+    }
+    if(gameState==='before'){
+      if(be2){be2.disabled=true;be2.style.opacity='0.35';}
     }
     if(gameState==='ended'){
       if(be2){be2.disabled=true;be2.style.opacity='0.4';}
