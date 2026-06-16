@@ -424,17 +424,6 @@ main{position:relative;z-index:1;padding:16px;padding-bottom:40px}
     <div class="kpi-card" style="opacity:0.3"><div class="kpi-val">—</div><div class="kpi-label"> </div></div>
   </div>
 
-  <div class="sec-label">守備 / 投手の内訳</div>
-  <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px">
-    <div class="donut-wrap" style="margin-bottom:0">
-      <div class="chart-title">エラー種別</div>
-      <div id="ovErrBarChart"></div>
-    </div>
-    <div class="donut-wrap" style="margin-bottom:0">
-      <div class="chart-title">投球結果内訳</div>
-      <div id="ovPitBarChart"></div>
-    </div>
-  </div>
 </div>
 
 <!-- ========== DIRECTION TAB ========== -->
@@ -985,20 +974,7 @@ function renderOverview(){
     [{label:'安打 H', val:hitOB, color:'#3ecf8e'},{label:'四死球 BB/HBP', val:bbOB, color:'#a78bfa'}]
   );
 
-  // エラー種別棒グラフ
-  renderBarChart('ovErrBarChart',[
-    {label:'捕球エラー Ec', val:fldEc, color:'#f56565'},
-    {label:'送球エラー Et', val:fldEt, color:'#f6ad55'},
-    {label:'判断エラー Ej', val:fldEj, color:'#a78bfa'}
-  ]);
 
-  // 投球結果棒グラフ
-  renderBarChart('ovPitBarChart',[
-    {label:'奪三振 K',     val:pitK,                  color:'#3ecf8e'},
-    {label:'与四死球 BB',  val:pitBB,                 color:'#a78bfa'},
-    {label:'被安打 H',     val:pitH,                  color:'#f6ad55'},
-    {label:'その他アウト', val:Math.max(0,pitO-pitK), color:'#63b3ed'}
-  ]);
 }
 
 function setCardEval(id, grade, comment){
@@ -2093,14 +2069,7 @@ function renderFieldingDetail(sel, players){
       +'</div>';
     if(rows.length===0){wrap.innerHTML=teamKpi+'<div class="empty"><div class="empty-icon">🧤</div><div class="empty-title">守備データなし</div></div>';return;}
 
-    // エラー種別ドーナツ
     var donutHtml = '';
-    if(totE > 0){
-      donutHtml = '<div style="display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:12px">'
-        +'<div class="donut-wrap" style="margin-bottom:0"><div class="chart-title">エラー種別</div>'
-        +'<div class="donut-row"><svg class="donut-svg" id="fldErrDonut" viewBox="0 0 120 120"></svg>'
-        +'<div class="donut-legend" id="fldErrLegend"></div></div></div></div>';
-    }
 
     var tableRows=rows.map(function(r){
       var eCls=r.e>0?'color:var(--red);font-weight:700':'color:var(--text3)';
@@ -2120,14 +2089,7 @@ function renderFieldingDetail(sel, players){
       +'<thead><tr><th>#</th><th style="text-align:left">名前</th><th>O</th><th>N</th><th>Ec</th><th>Et</th><th>Ej</th><th>E計</th></tr></thead>'
       +'<tbody>'+tableRows+'</tbody></table></div>';
 
-    // エラー種別ドーナツ描画
-    if(totE > 0){
-      renderDonut('fldErrDonut','fldErrLegend',[
-        {label:'捕球エラー Ec', val:totEc, color:'#f56565'},
-        {label:'送球エラー Et', val:totEt, color:'#f6ad55'},
-        {label:'判断エラー Ej', val:totEj, color:'#a78bfa'}
-      ]);
-    }
+
   } else {
     var p=bd[sel];
     if(!p){wrap.innerHTML='<div class="empty"><div class="empty-icon">🧤</div><div class="empty-title">データなし</div></div>';return;}
@@ -2250,12 +2212,7 @@ function renderPitchingDetail(sel, pitchers){
       +'</div>';
     if(rows.length===0){wrap.innerHTML=teamKpi+'<div class="empty"><div class="empty-icon">⚾</div><div class="empty-title">投手データなし</div></div>';return;}
 
-    // 投球結果ドーナツ
-    var pitOther = totO - totK; // 三振以外のアウト
-    var pitDonutHtml = '<div style="display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:12px">'
-      +'<div class="donut-wrap" style="margin-bottom:0"><div class="chart-title">投球結果内訳</div>'
-      +'<div class="donut-row"><svg class="donut-svg" id="pitResultDonut" viewBox="0 0 120 120"></svg>'
-      +'<div class="donut-legend" id="pitResultLegend"></div></div></div></div>';
+    var pitDonutHtml = '';
 
     var tableRows = rows.map(function(r){
       var ev=calcERA(r.r,r.o), wv=whip(r.bb,r.h,r.o), kv=pitRate(r.k,r.o);
@@ -2272,18 +2229,12 @@ function renderPitchingDetail(sel, pitchers){
         +'<td style="color:var(--green)">'+kv+'</td>'
         +'</tr>';
     }).join('');
-    wrap.innerHTML = teamKpi + pitDonutHtml
+    wrap.innerHTML = teamKpi
       +'<div class="player-table-wrap"><table class="player-table">'
       +'<thead><tr><th>#</th><th style="text-align:left">名前</th><th>回</th><th>K</th><th>BB</th><th>H</th><th>R</th><th>ERA</th><th>WHIP</th><th>K/7</th></tr></thead>'
       +'<tbody>'+tableRows+'</tbody></table></div>';
 
-    // 投球結果ドーナツ描画
-    renderDonut('pitResultDonut','pitResultLegend',[
-      {label:'奪三振 K',      val:totK,    color:'#3ecf8e'},
-      {label:'与四死球 BB',   val:totBB,   color:'#a78bfa'},
-      {label:'被安打 H',      val:totH,    color:'#f6ad55'},
-      {label:'その他アウト',  val:Math.max(0,totO-totK), color:'#63b3ed'}
-    ]);
+
   } else {
     var p = bd[sel];
     if(!p){wrap.innerHTML='<div class="empty"><div class="empty-icon">⚾</div><div class="empty-title">データなし</div></div>';return;}
