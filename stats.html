@@ -425,20 +425,14 @@ main{position:relative;z-index:1;padding:16px;padding-bottom:40px}
   </div>
 
   <div class="sec-label">守備 / 投手の内訳</div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+  <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px">
     <div class="donut-wrap" style="margin-bottom:0">
       <div class="chart-title">エラー種別</div>
-      <div class="donut-row">
-        <svg class="donut-svg" id="ovErrDonut" viewBox="0 0 120 120"></svg>
-        <div class="donut-legend" id="ovErrLegend"></div>
-      </div>
+      <div id="ovErrBarChart"></div>
     </div>
     <div class="donut-wrap" style="margin-bottom:0">
       <div class="chart-title">投球結果内訳</div>
-      <div class="donut-row">
-        <svg class="donut-svg" id="ovPitDonut" viewBox="0 0 120 120"></svg>
-        <div class="donut-legend" id="ovPitLegend"></div>
-      </div>
+      <div id="ovPitBarChart"></div>
     </div>
   </div>
 </div>
@@ -988,18 +982,18 @@ function renderOverview(){
   var hitOB = parsed.filter(function(x){return isHit(x.p);}).length;
   var bbOB  = parsed.filter(function(x){return isBB(x.p);}).length;
   renderBarChart('obBarChart',
-    [{label:'安打 H', val:hitOB, color:'#3ecf8e'},{label:'四死球', val:bbOB, color:'#a78bfa'}]
+    [{label:'安打 H', val:hitOB, color:'#3ecf8e'},{label:'四死球 BB/HBP', val:bbOB, color:'#a78bfa'}]
   );
 
-  // エラー種別ドーナツ
-  renderDonut('ovErrDonut','ovErrLegend',[
+  // エラー種別棒グラフ
+  renderBarChart('ovErrBarChart',[
     {label:'捕球エラー Ec', val:fldEc, color:'#f56565'},
     {label:'送球エラー Et', val:fldEt, color:'#f6ad55'},
     {label:'判断エラー Ej', val:fldEj, color:'#a78bfa'}
   ]);
 
-  // 投球結果ドーナツ
-  renderDonut('ovPitDonut','ovPitLegend',[
+  // 投球結果棒グラフ
+  renderBarChart('ovPitBarChart',[
     {label:'奪三振 K',     val:pitK,                  color:'#3ecf8e'},
     {label:'与四死球 BB',  val:pitBB,                 color:'#a78bfa'},
     {label:'被安打 H',     val:pitH,                  color:'#f6ad55'},
