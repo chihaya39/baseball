@@ -204,7 +204,7 @@ td:first-child{text-align:left;padding-left:4px}
 
   <div style="height:20px"></div>
 
-  <button class="btn" id="btnGameEnd" onclick="endGame()" style="padding:12px;font-size:14px;background:var(--bg3);color:var(--text2);border:1px solid var(--border)" disabled>🏁 試合終了</button>
+  <button class="btn" id="btnGameEnd" onclick="endGame()" style="padding:12px;font-size:14px;background:var(--bg3);color:var(--text2);border:1px solid var(--border)">🏁 試合終了</button>
 
   <div style="height:1px;background:var(--border);margin:24px 0"></div>
 
@@ -516,9 +516,6 @@ function init(){
       if(sk2){ sk2.style.pointerEvents='none'; sk2.style.opacity='0.6'; }
       if(kk2){ kk2.style.pointerEvents='none'; kk2.style.opacity='0.6'; }
     }
-    if(gameState==='before'){
-      if(be2){be2.disabled=true;be2.style.opacity='0.35';}
-    }
     if(gameState==='ended'){
       if(be2){be2.disabled=true;be2.style.opacity='0.4';}
     }
@@ -544,6 +541,9 @@ function init(){
     switchTab(isAttacking ? 'batting' : 'pitcher');
     // 復元通知
     showInningToast(currentInning, isOmote?'表':'裏');
+  } else {
+    // 試合データなし：試合前状態でタブをグレーアウト
+    switchTab('order');
   }
 }
 
@@ -642,6 +642,11 @@ function clearGameStorage(){
 
 // ===== TAB SWITCH =====
 function switchTab(name){
+  // 試合前は「試合」タブ以外触れない
+  if(gameState === 'before' && name !== 'order'){
+    return;
+  }
+
   // 試合中は攻守に応じてタブを制限
   if(gameState === 'playing'){
     var isAttacking = isSenkou ? isOmote : !isOmote;
@@ -665,7 +670,18 @@ function switchTab(name){
   });
 
   // タブの見た目をグレーアウト
-  if(gameState === 'playing'){
+  if(gameState === 'before'){
+    // 試合前：試合タブ以外グレーアウト
+    ['batting','running','fielding','pitcher','stats'].forEach(function(n){
+      var t = document.getElementById('tab'+n.charAt(0).toUpperCase()+n.slice(1));
+      if(t){ t.style.opacity = '0.3'; t.style.pointerEvents = 'none'; }
+    });
+  } else if(gameState === 'playing'){
+    // 試合中：全タブのpointerEventsを戻してから攻守で制御
+    ['batting','running','fielding','pitcher','stats'].forEach(function(n){
+      var t = document.getElementById('tab'+n.charAt(0).toUpperCase()+n.slice(1));
+      if(t) t.style.pointerEvents = '';
+    });
     var isAttacking2 = isSenkou ? isOmote : !isOmote;
     ['batting','running'].forEach(function(n){
       var t = document.getElementById('tab'+n.charAt(0).toUpperCase()+n.slice(1));
@@ -675,10 +691,13 @@ function switchTab(name){
       var t = document.getElementById('tab'+n.charAt(0).toUpperCase()+n.slice(1));
       if(t) t.style.opacity = !isAttacking2 ? '1' : '0.35';
     });
+    var ts = document.getElementById('tabStats');
+    if(ts) ts.style.opacity = '1';
   } else {
-    ['batting','running','fielding','pitcher'].forEach(function(n){
+    // ended：全タブ有効
+    ['batting','running','fielding','pitcher','stats'].forEach(function(n){
       var t = document.getElementById('tab'+n.charAt(0).toUpperCase()+n.slice(1));
-      if(t) t.style.opacity = '1';
+      if(t){ t.style.opacity = '1'; t.style.pointerEvents = ''; }
     });
   }
 
