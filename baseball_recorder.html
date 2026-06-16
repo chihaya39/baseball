@@ -1101,6 +1101,8 @@ function saveOrder(){
   if(op) op.disabled=true;
   if(sk){ sk.style.pointerEvents='none'; sk.style.opacity='0.6'; }
   if(kk){ kk.style.pointerEvents='none'; kk.style.opacity='0.6'; }
+  var be = document.getElementById('btnGameEnd');
+  if(be){ be.disabled=false; be.style.opacity=''; }
   updateOutDisplay();
   updateGameHeader();
 }
