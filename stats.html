@@ -381,6 +381,24 @@ main{position:relative;z-index:1;padding:16px;padding-bottom:40px}
     </div>
   </div>
 
+  <div class="sec-label">出塁 / 三振の内訳</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+    <div class="donut-wrap" style="margin-bottom:0">
+      <div class="chart-title">出塁内訳</div>
+      <div class="donut-row">
+        <svg class="donut-svg" id="obDonut" viewBox="0 0 120 120"></svg>
+        <div class="donut-legend" id="obLegend"></div>
+      </div>
+    </div>
+    <div class="donut-wrap" style="margin-bottom:0">
+      <div class="chart-title">三振内訳</div>
+      <div class="donut-row">
+        <svg class="donut-svg" id="kDonut" viewBox="0 0 120 120"></svg>
+        <div class="donut-legend" id="kLegend"></div>
+      </div>
+    </div>
+  </div>
+
   <div class="sec-label">チーム守備</div>
   <div class="kpi-grid wide" style="margin-bottom:16px">
     <div class="kpi-card green"><div class="kpi-val" id="ovFldO">0</div><div class="kpi-label">アウト関与</div></div>
@@ -410,24 +428,6 @@ main{position:relative;z-index:1;padding:16px;padding-bottom:40px}
     <div class="kpi-card purple"><div class="kpi-val" id="ovPitBB7">-</div><div class="kpi-label">与四死球率 BB/7</div></div>
     <div class="kpi-card"><div class="kpi-val" style="color:var(--text2)" id="ovPitH7">-</div><div class="kpi-label">被安打率 H/7</div></div>
     <div class="kpi-card" style="opacity:0.3"><div class="kpi-val">—</div><div class="kpi-label"> </div></div>
-  </div>
-
-  <div class="sec-label">三振 / 出塁の内訳</div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
-    <div class="donut-wrap" style="margin-bottom:0">
-      <div class="chart-title">出塁内訳</div>
-      <div class="donut-row">
-        <svg class="donut-svg" id="obDonut" viewBox="0 0 120 120"></svg>
-        <div class="donut-legend" id="obLegend"></div>
-      </div>
-    </div>
-    <div class="donut-wrap" style="margin-bottom:0">
-      <div class="chart-title">三振内訳</div>
-      <div class="donut-row">
-        <svg class="donut-svg" id="kDonut" viewBox="0 0 120 120"></svg>
-        <div class="donut-legend" id="kLegend"></div>
-      </div>
-    </div>
   </div>
 
   <div class="sec-label">守備 / 投手の内訳</div>
