@@ -733,6 +733,7 @@ function parseCode(code){
   if(code === 'HBP' || code === '死球'){ return {dir:null,type:null,result:'HBP',extra:false,rbi:rbi,raw:raw}; }
   // バント
   if(code === 'B'){ return {dir:null,type:'B',result:'B',extra:false,rbi:rbi,raw:raw}; }
+  if(code === 'SAC'){ return {dir:null,type:'SAC',result:'SAC',extra:false,rbi:rbi,raw:raw}; }
   // 空振三振・見逃三振
   if(code === 'Ks' || code === 'Kl' || code === 'K'){
     return {dir:null,type:'K',result:code,extra:false,rbi:rbi,raw:raw};
@@ -756,6 +757,7 @@ function parseCode(code){
       else if(rest === 'Ks') res = 'Ks';
       else if(rest === 'Kl') res = 'Kl';
       else if(rest === 'B') res = 'B';
+      else if(rest === 'SAC') res = 'SAC';
       else if(rest === 'BB') res = 'BB';
       else if(rest === 'HBP') res = 'HBP';
     }
@@ -786,7 +788,7 @@ function isBB(parsed){
 function isOnBase(parsed){
   // 出塁 = 安打(方向あり○) + ○単体(四球等) + BB + HBP + バント成功
   if(!parsed) return false;
-  return (parsed.result === '○') || parsed.result === 'OB' || parsed.result === 'B' || isBB(parsed);
+  return (parsed.result === '○') || parsed.result === 'OB' || parsed.result === 'B' || isBB(parsed);  // SACは出塁しない
 }
 
 function getPlayerResults(num){
@@ -1324,7 +1326,8 @@ function renderPlayerDetail(sel, players){
       var pa = res.length;
       var bb = res.filter(function(p){return isBB(p);}).length;
       var bunt = res.filter(function(p){return p.result==='B';}).length;
-      var ab = pa - bb - bunt;
+      var sac = res.filter(function(p){return p.result==='SAC';}).length;
+      var ab = pa - bb - bunt - sac;
       var h = res.filter(function(p){return isHit(p);}).length;
       var k = res.filter(function(p){return isK(p);}).length;
       var avg = ab>0 ? h/ab : 0;
@@ -1392,7 +1395,8 @@ function renderPlayerDetail(sel, players){
     var pa = res.length;
     var bbList = res.filter(function(x){return isBB(x.p);});
     var buntList = res.filter(function(x){return x.p.result==='B';});
-    var ab = pa - bbList.length - buntList.length;
+    var sacList = res.filter(function(x){return x.p.result==='SAC';});
+    var ab = pa - bbList.length - buntList.length - sacList.length;
     var hList = res.filter(function(x){return isHit(x.p);});
     var kList = res.filter(function(x){return isK(x.p);});
     var avg = ab>0 ? hList.length/ab : 0;
@@ -1430,6 +1434,7 @@ function renderPlayerDetail(sel, players){
       +'<div class="kpi-card"><div class="kpi-val" style="color:var(--green)">'+extraList.length+'</div><div class="kpi-label" style="color:var(--text2)">長打 XBH</div></div>'
       +'<div class="kpi-card"><div class="kpi-val" style="color:var(--gold)">'+rbiC+'</div><div class="kpi-label" style="color:var(--text2)">打点 RBI</div></div>'
       +'<div class="kpi-card"><div class="kpi-val" style="color:var(--green)">'+(bd.sb||0)+'</div><div class="kpi-label" style="color:var(--text2)">盗塁 SB</div></div>'
+      +'<div class="kpi-card"><div class="kpi-val" style="color:var(--text3)">'+sacList.length+'</div><div class="kpi-label" style="color:var(--text2)">犠打 SAC</div></div>'
       +'</div>'
       // 行3: 打率AVG・出塁率OBP・長打率SLG・OPS・BABIP
       +'<div class="kpi-grid wide" style="margin-bottom:16px">'
@@ -1472,6 +1477,7 @@ function renderPlayerDetail(sel, players){
       else if(p.result==='BB'){resLabel='四球';resCls='result-bb';}
       else if(p.result==='HBP'){resLabel='死球';resCls='result-bb';}
       else if(p.result==='B'){resLabel='バント';resCls='result-hit';}
+      else if(p.result==='SAC'){resLabel='犠打';resCls='result-out';}
       else if(isOut(p)){resLabel='アウト';resCls='result-out';}
       var dir = p.dir ? {L:'L レフト',C:'C センター',R:'R ライト'}[p.dir]||p.dir : '';
       var type = p.type ? {G:'ゴロ',F:'フライ',Ld:'ライナー',K:'',B:''}[p.type]||'' : '';
@@ -1592,6 +1598,7 @@ function renderLog(){
       else if(isK(p)){badge=p.result==='Ks'?'空振K':'見逃K';badgeCls='badge-k';}
       else if(isBB(p)){badge=p.result==='BB'?'四球':'死球';badgeCls='badge-bb';}
       else if(p.result==='B'){badge='バント';badgeCls='badge-hit';}
+      else if(p.result==='SAC'){badge='犠打';badgeCls='badge-out';}
       else if(isOut(p)){badge='アウト';badgeCls='badge-out';}
       html += '<div class="at-bat-row">'
         +'<div class="ab-order">'+(i+1)+'</div>'
