@@ -382,20 +382,14 @@ main{position:relative;z-index:1;padding:16px;padding-bottom:40px}
   </div>
 
   <div class="sec-label">出塁 / 三振の内訳</div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+  <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px">
     <div class="donut-wrap" style="margin-bottom:0">
       <div class="chart-title">出塁内訳</div>
-      <div class="donut-row">
-        <svg class="donut-svg" id="obDonut" viewBox="0 0 120 120"></svg>
-        <div class="donut-legend" id="obLegend"></div>
-      </div>
+      <div id="obBarChart"></div>
     </div>
     <div class="donut-wrap" style="margin-bottom:0">
       <div class="chart-title">三振内訳</div>
-      <div class="donut-row">
-        <svg class="donut-svg" id="kDonut" viewBox="0 0 120 120"></svg>
-        <div class="donut-legend" id="kLegend"></div>
-      </div>
+      <div id="kBarChart"></div>
     </div>
   </div>
 
@@ -985,18 +979,16 @@ function renderOverview(){
     tbEl.innerHTML = '<div class="no-data">打球データなし</div>';
   }
 
-  // 三振ドーナツ
-  renderDonut('kDonut', 'kLegend',
+  // 三振横棒グラフ
+  renderBarChart('kBarChart',
     [{label:'空振三振 Ks', val:ks, color:'#f56565'},{label:'見逃三振 Kl', val:kl, color:'#f6ad55'}]
   );
 
-  // 出塁内訳ドーナツ
+  // 出塁内訳横棒グラフ
   var hitOB = parsed.filter(function(x){return isHit(x.p);}).length;
-  var bbOB = parsed.filter(function(x){return isBB(x.p);}).length;
-  var obSingle = parsed.filter(function(x){return x.p && x.p.result==='BB' && !x.p.dir;}).length;
-  var buntOB = parsed.filter(function(x){return x.p && x.p.result==='B';}).length;
-  renderDonut('obDonut', 'obLegend',
-    [{label:'安打 H', val:hitOB, color:'#3ecf8e'},{label:'四死球', val:bbOB, color:'#a78bfa'},{label:'バント', val:buntOB, color:'#f6ad55'}]
+  var bbOB  = parsed.filter(function(x){return isBB(x.p);}).length;
+  renderBarChart('obBarChart',
+    [{label:'安打 H', val:hitOB, color:'#3ecf8e'},{label:'四死球', val:bbOB, color:'#a78bfa'}]
   );
 
   // エラー種別ドーナツ
@@ -1149,6 +1141,34 @@ function makeBar(label, count, total, cls){
     +'</div>'+numSpan+'</div>'
     +'<div class="bar-pct">'+pct+'%</div>'
     +'</div>';
+}
+
+function renderBarChart(containerId, items){
+  var el = document.getElementById(containerId);
+  if(!el) return;
+  var total = items.reduce(function(s,i){return s+i.val;},0);
+  if(total === 0){
+    el.innerHTML = '<div class="no-data" style="padding:12px 0">データなし</div>';
+    return;
+  }
+  var html = '';
+  items.forEach(function(item){
+    var pct = total > 0 ? Math.round(item.val/total*100) : 0;
+    var barW = total > 0 ? (item.val/total*100) : 0;
+    html += '<div style="margin-bottom:10px">'
+          + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">'
+          + '<span style="font-size:11px;color:var(--text2)">'
+          + '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+item.color+';margin-right:6px;vertical-align:middle"></span>'
+          + item.label+'</span>'
+          + '<span style="font-size:12px;font-weight:700;color:var(--text)">'+item.val
+          + '<span style="font-size:10px;color:var(--text3);font-weight:400;margin-left:4px">'+pct+'%</span></span>'
+          + '</div>'
+          + '<div style="background:rgba(255,255,255,0.07);border-radius:4px;height:8px;overflow:hidden">'
+          + '<div style="height:100%;width:'+barW+'%;background:'+item.color+';border-radius:4px;transition:width .4s ease"></div>'
+          + '</div>'
+          + '</div>';
+  });
+  el.innerHTML = html;
 }
 
 function renderDonut(svgId, legendId, items){
