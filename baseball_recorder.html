@@ -204,7 +204,7 @@ td:first-child{text-align:left;padding-left:4px}
 
   <div style="height:20px"></div>
 
-  <button class="btn" id="btnGameEnd" onclick="endGame()" style="padding:12px;font-size:14px;background:var(--bg3);color:var(--text2);border:1px solid var(--border)" disabled>🏁 試合終了</button>
+  <button class="btn" id="btnGameEnd" onclick="endGame()" style="padding:12px;font-size:14px;background:rgba(232,120,30,0.18);color:#e8781e;border:1px solid rgba(232,120,30,0.5)" disabled>🏁 試合終了</button>
 
   <div style="height:1px;background:var(--border);margin:24px 0"></div>
 
@@ -517,10 +517,10 @@ function init(){
       if(kk2){ kk2.style.pointerEvents='none'; kk2.style.opacity='0.6'; }
     }
     if(gameState==='before'){
-      if(be2){be2.disabled=true;be2.style.opacity='0.35';}
+      if(be2){be2.disabled=true;be2.style.opacity='0.3';}
     }
     if(gameState==='playing'){
-      if(be2){be2.disabled=false;be2.style.opacity='';}
+      if(be2){be2.disabled=false;be2.style.opacity='';be2.style.background='rgba(232,120,30,0.25)';be2.style.color='#e8781e';be2.style.borderColor='rgba(232,120,30,0.7)';}
     }
     if(gameState==='ended'){
       if(be2){be2.disabled=true;be2.style.opacity='0.4';}
@@ -1102,7 +1102,7 @@ function saveOrder(){
   if(sk){ sk.style.pointerEvents='none'; sk.style.opacity='0.6'; }
   if(kk){ kk.style.pointerEvents='none'; kk.style.opacity='0.6'; }
   var be = document.getElementById('btnGameEnd');
-  if(be){ be.disabled=false; be.style.opacity=''; }
+  if(be){ be.disabled=false; be.style.opacity=''; be.style.background='rgba(232,120,30,0.25)'; be.style.color='#e8781e'; be.style.borderColor='rgba(232,120,30,0.7)'; }
   updateOutDisplay();
   updateGameHeader();
 }
