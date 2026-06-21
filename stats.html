@@ -1366,7 +1366,7 @@ function renderPlayerDetail(sel, players){
         +'<td style="color:#9acd78">'+(pa>0?fmtAvg(woba2):'.-')+'</td>'
         +'</tr>';
     });
-    sortKey = 'num'; sortAsc = true; // デフォルト背番号昇順
+    sortKey = null; sortAsc = false; // リセットしてからOPS降順で初期化
     wrap.innerHTML = '<div class="player-table-wrap"><table class="player-table">'
       +'<thead><tr>'
       +'<th onclick="sortTable(\'num\')" style="cursor:pointer" id="th-num">選手 ↕</th>'
@@ -1382,6 +1382,7 @@ function renderPlayerDetail(sel, players){
       +'<th onclick="sortTable(\'woba\')" style="cursor:pointer;color:#9acd78" id="th-woba">wOBA ↕</th>'
       +'</tr></thead>'
       +'<tbody>'+rows+'</tbody></table></div>';
+    sortTable('ops'); // デフォルトOPS降順
   } else {
     // 個人詳細
     var bd = gameData.batData[sel];
