@@ -229,7 +229,7 @@ td:first-child{text-align:left;padding-left:4px}
   </div>
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
     <span style="font-size:15px;font-weight:700">選手マスタ</span>
-    <button class="btn btn-sm btn-sec" onclick="switchTab('order')">← 戻る</button>
+    <button class="btn btn-sm btn-sec" onclick="saveMaster()">← 保存して戻る</button>
   </div>
   <p class="hint" style="margin-bottom:10px">背番号とポジションを登録。投手はポジションに「P」を含めてください（例：P/3B）。変更は自動保存されます。</p>
   <div style="display:grid;grid-template-columns:52px 1fr 90px 32px;gap:6px;margin-bottom:6px">
@@ -255,6 +255,7 @@ td:first-child{text-align:left;padding-left:4px}
     <button class="btn btn-sec" style="padding:9px" onclick="addBatSubPlayer()">＋ 代打・代走を追加</button>
   </div>
   <div class="pg4" id="batSubPlayerGrid" style="margin-top:6px"></div>
+  <div class="preview" id="batPreview" style="margin-top:8px"><span style="color:var(--text3)">選手を選んでください</span></div>
   <div id="batPhases" style="display:none">
     <!-- ZONE 1: 打球内容 -->
     <div class="zone zone-blue">
@@ -305,7 +306,6 @@ td:first-child{text-align:left;padding-left:4px}
       </div>
     </div>
   </div>
-  <div class="preview" id="batPreview"><span style="color:var(--text3)">選手を選んでください</span></div>
   <button class="btn btn-primary" id="batCommitBtn" disabled onclick="commitBat()">記録する</button>
   <div class="divider"></div>
   <div style="font-size:12px;font-weight:600;margin-bottom:7px">直近ログ</div>
@@ -577,19 +577,20 @@ function saveLineupToStorage(){
   localStorage.setItem('baseball_lineup', JSON.stringify(lineup));
 }
 function saveGameToStorage(){
-  var gameState = {
+  var currentStatus = gameState; // グローバル変数を先に退避
+  var saveObj = {
     batData:batData, runData:runData, fldData:fldData, pitData:pitData,
     batLogs:batLogs, runLogs:runLogs, fldLogs:fldLogs, pitLogs:pitLogs,
     batOrder:batOrder, batSubPlayers:batSubPlayers, orderConfirmed:orderConfirmed,
     fldSubPlayers:fldSubPlayers,
-    gameState:gameState, onBase:onBase,
+    gameState:currentStatus, onBase:onBase,
     currentInning:currentInning, isOmote:isOmote, isSenkou:isSenkou,
     batOutCount:batOutCount, pitOutCount:pitOutCount,
     currentPitcher:currentPitcher,
     gameDate:document.getElementById('gameDate')?document.getElementById('gameDate').value:'',
     opponent:document.getElementById('opponent')?document.getElementById('opponent').value:''
   };
-  localStorage.setItem('baseball_game', JSON.stringify(gameState));
+  localStorage.setItem('baseball_game', JSON.stringify(saveObj));
 }
 function loadGameFromStorage(){
   var saved = localStorage.getItem('baseball_game');
@@ -666,8 +667,8 @@ function clearGameStorage(){
 
 // ===== TAB SWITCH =====
 function switchTab(name){
-  // 試合前は「試合」タブ以外触れない
-  if(gameState === 'before' && name !== 'order'){
+  // 試合前は「試合」「マスタ」タブのみ触れる
+  if(gameState === 'before' && name !== 'order' && name !== 'master'){
     return;
   }
 
@@ -859,8 +860,9 @@ function renderMasterRows(){
   var el = document.getElementById('masterRows');
   el.innerHTML = '';
   master.forEach(function(p, i){
+    var numLabel = String(p.num).startsWith('-') ? '背番なし' : '#'+p.num;
     el.innerHTML += '<div class="master-row">'
-      + '<div class="master-label">#'+p.num+'</div>'
+      + '<div class="master-label">'+numLabel+'</div>'
       + '<input type="text" id="mname_'+i+'" value="'+esc(p.name)+'" placeholder="名前（任意）">'
       + '<input type="text" id="mpos_'+i+'" value="'+esc(p.pos)+'" placeholder="P/3B など">'
       + '<button onclick="deleteMasterRow('+i+')" style="background:none;border:none;color:var(--red);font-size:18px;cursor:pointer;padding:4px">×</button>'
@@ -881,6 +883,8 @@ function addMasterRow(){
   }
   master.push({num:num, name:'', pos:''});
   renderMasterRows();
+  buildBatMasterGrid();
+  buildFldMasterGrid();
 }
 
 function deleteMasterRow(i){
@@ -890,7 +894,6 @@ function deleteMasterRow(i){
 }
 
 function saveMaster(){
-  // read current values from inputs
   master.forEach(function(p, i){
     var nm = document.getElementById('mname_'+i);
     var np = document.getElementById('mpos_'+i);
@@ -899,10 +902,16 @@ function saveMaster(){
   });
   saveMasterToStorage();
   renderOrderSelRows();
-  buildPitMasterGrid();   // ④投手タブへ反映
-  buildFldMasterGrid();   // 野手タブへも反映
-  buildBatMasterGrid();   // 打撃タブへも反映
-  switchTab('order');
+  buildPitMasterGrid();
+  buildFldMasterGrid();
+  buildBatMasterGrid();
+  // 試合中なら適切なタブへ戻る
+  if(gameState === 'playing'){
+    var isAttacking = isSenkou ? isOmote : !isOmote;
+    switchTab(isAttacking ? 'batting' : 'pitcher');
+  } else {
+    switchTab('order');
+  }
 }
 
 function esc(s){ return (s||'').replace(/"/g,'&quot;'); }
@@ -1265,7 +1274,10 @@ function buildBatMasterGrid(){
 function makeBatBtn(label, num){
   var btn = document.createElement('div');
   btn.className = 'pb';
-  btn.innerHTML = '<div class="pn">'+label+'</div><div class="pnum">#'+num+'</div>';
+  var isNoNum = String(num).startsWith('-');
+  var displayNum = isNoNum ? '背番なし' : '#'+num;
+  var displayLabel = isNoNum ? '#' : label;
+  btn.innerHTML = '<div class="pn">'+displayLabel+'</div><div class="pnum">'+displayNum+'</div>';
   return btn;
 }
 
@@ -1898,8 +1910,12 @@ function renderPitStats(){
 function renderStats(){
   var tH=0,tRBI=0,tK=0,tBB=0;
   Object.values(batData).forEach(function(s){tH+=s.h||0;tRBI+=s.rbi||0;tK+=s.k||0;tBB+=s.bb||0;});
+  // 走塁タブのR得点（打点なし生還）も合算
+  var tRunR=0;
+  Object.values(runData).forEach(function(s){tRunR+=(s.R||0);});
+  var tScore = tRBI + tRunR;
   document.getElementById('metricGrid').innerHTML=
-    '<div class="metric"><div class="mv">'+tRBI+'</div><div class="ml">得点</div></div>'
+    '<div class="metric"><div class="mv">'+tScore+'</div><div class="ml">得点</div></div>'
     +'<div class="metric"><div class="mv">'+tH+'</div><div class="ml">安打</div></div>'
     +'<div class="metric"><div class="mv">'+tK+'</div><div class="ml">三振</div></div>'
     +'<div class="metric"><div class="mv">'+tBB+'</div><div class="ml">四死球</div></div>';
@@ -1995,6 +2011,9 @@ function exportExcel(){
   // ── BATTING / PITCHING メトリクス枠 ──
   var tH=0,tRBI=0,tK=0,tBB=0;
   Object.values(batData).forEach(function(s){tH+=s.h||0;tRBI+=s.rbi||0;tK+=s.k||0;tBB+=s.bb||0;});
+  var tRunR=0;
+  Object.values(runData).forEach(function(s){tRunR+=(s.R||0);});
+  var tScore=tRBI+tRunR;
   var pH=0,pR=0,pK=0,pBB=0;
   Object.values(pitData).forEach(function(s){if(s){pH+=s.H||0;pR+=s.R||0;pK+=s.K||0;pBB+=(s.BB||0)+(s.HBP||0);}});
 
@@ -2005,7 +2024,7 @@ function exportExcel(){
 
   // BATTING
   ws.mergeCells(R,1,R,4); applyCell(R,1,'BATTING',mHdrStyle); R++;
-  [tRBI,tH,tK,tBB].forEach(function(v,i){ applyCell(R,i+1,v,metricStyle); });
+  [tScore,tH,tK,tBB].forEach(function(v,i){ applyCell(R,i+1,v,metricStyle); });
   ws.getRow(R).height=30; R++;
   ['得点','安打','三振','四死球'].forEach(function(l,i){ applyCell(R,i+1,l,labelStyle); });
   R+=3;
@@ -2091,51 +2110,7 @@ function exportExcel(){
     });
   }
 
-  // ===== Sheet 2: 転記用データ =====
-  var ws2 = wb.addWorksheet('転記用データ');
-  ws2.columns=[{width:6},{width:6},{width:32},{width:22},{width:22},{width:8},{width:8},{width:8},{width:8},{width:6}];
-  var R2=1;
-
-  function applyCell2(r,c,v,opts){
-    var cl=ws2.getCell(r,c); cl.value=v;
-    if(opts.bg) cl.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF'+opts.bg}};
-    cl.font={name:'Arial',size:opts.sz||10,bold:!!opts.bold,color:{argb:'FF'+(opts.ft||'1C2833')}};
-    cl.alignment={horizontal:opts.align||'left',vertical:'middle'};
-    if(opts.border){var b={style:'thin',color:{argb:'FFBDC3C7'}};cl.border={top:b,bottom:b};}
-  }
-
-  ws2.mergeCells(R2,1,R2,10);
-  applyCell2(R2,1,'長束中野球記録 転記用データ　'+date+'　'+opp,{bg:'2C3E50',ft:'FFFFFF',bold:true,sz:11});
-  ws2.getRow(R2).height=20; R2+=2;
-
-  ['打順','背番号','打撃記録','走塁記録','守備記録','O(投)','K(投)','BB/HBP(投)','H(投)','R(投)'].forEach(function(h,i){
-    applyCell2(R2,i+1,h,{bg:'AEB6BF',bold:true,sz:9,align:'center',border:true});
-  }); R2++;
-
-  var allPlayers=[];
-  batOrder.forEach(function(o){allPlayers.push({num:o.num,order:o.order,isSub:false});});
-  batSubPlayers.forEach(function(p){allPlayers.push({num:p.num,order:'代',isSub:true});});
-  Object.keys(batData).forEach(function(num){
-    if(!allPlayers.find(function(x){return x.num===num;}))
-      allPlayers.push({num:num,order:'-',isSub:false});
-  });
-
-  allPlayers.forEach(function(p){
-    var bat=batData[p.num]||{results:[]};
-    var run=runData[p.num]; var fld=fldData[p.num]; var pit=pitData[p.num];
-    var batStr=bat.results.join(',');
-    var runArr=[]; if(run)['SB+','SB-','PO','WP','PB'].forEach(function(k){for(var i=0;i<(run[k]||0);i++)runArr.push(k);});
-    var fldArr=[]; if(fld)['O','N','Ec','Et','Ej'].forEach(function(k){for(var i=0;i<(fld[k]||0);i++)fldArr.push(k);});
-    var pitO='',pitK='',pitBB='',pitH='',pitR='';
-    if(pit&&(pit.O+pit.K+pit.BB+pit.HBP+pit.H+pit.R)>0){pitO=pit.O;pitK=pit.K;pitBB=(pit.BB+pit.HBP);pitH=pit.H;pitR=pit.R;}
-    if(!batStr&&!runArr.length&&!fldArr.length&&!pitO) return;
-    var bg=p.isSub?'F2F3F4':'FFFFFF';
-    [p.isSub?'代':p.order,p.num,batStr,runArr.join(','),fldArr.join(','),pitO,pitK,pitBB,pitH,pitR].forEach(function(v,i){
-      applyCell2(R2,i+1,v,{bg:bg,sz:10,align:i<5?'left':'center',border:true});
-    }); R2++;
-  });
-
-  // ===== Sheet 3: 記録入力（stats.html用） =====
+  // ===== Sheet 2: 記録入力（stats.html用） =====
   var ws3 = wb.addWorksheet('記録入力');
   ws3.columns=[{width:12},{width:14},{width:6},{width:8},{width:16},{width:10},{width:24},{width:16},{width:16},{width:8},{width:8},{width:8},{width:8},{width:8}];
 
@@ -2161,8 +2136,16 @@ function exportExcel(){
     if(!allPlayers3.find(function(x){return x.num===num;}))
       allPlayers3.push({num:num, order:'-', isSub:false});
   });
+  // 投手記録のみの選手（打席なし投手）も追加
+  Object.keys(pitData).forEach(function(num){
+    var s=pitData[num]; if(!s||s.O+s.K+(s.BB||0)+(s.HBP||0)+s.H+s.R===0) return;
+    if(!allPlayers3.find(function(x){return x.num===num;}))
+      allPlayers3.push({num:num, order:'投', isSub:false});
+  });
 
   allPlayers3.forEach(function(p){
+    // ②背番号なし選手は記録入力シートに出力しない
+    if(String(p.num).startsWith('-')) return;
     var bat=batData[p.num]||{results:[]};
     var run=runData[p.num]; var fld=fldData[p.num]; var pit=pitData[p.num];
     var batStr=bat.results.join(',');
@@ -2172,7 +2155,7 @@ function exportExcel(){
     if(pit&&(pit.O+pit.K+(pit.BB||0)+(pit.HBP||0)+pit.H+pit.R)>0){
       pitO=pit.O; pitK=pit.K; pitBB=(pit.BB||0)+(pit.HBP||0); pitH=pit.H; pitR=pit.R;
     }
-    if(!batStr&&!runArr.length&&!fldArr.length&&!pitO) return;
+    if(!batStr&&!runArr.length&&!fldArr.length&&!pitO&&!pitK&&!pitBB&&!pitH&&!pitR) return;
     var name=getMasterName(p.num);
     var mst=master.find(function(x){return x.num===p.num;})||{};
     var pos=mst.pos||'';
