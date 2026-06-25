@@ -1727,6 +1727,7 @@ function commitBat(){
   buildRunMasterGrid();
   buildBatMasterGrid();
   saveGameToStorage();
+  buildBatSubPlayerGrid();
   resetBat();
   window.scrollTo(0, 0);
 }
@@ -2304,6 +2305,7 @@ function undoLast(logId){
     }
     renderLog('batLog', batLogs);
     buildBatMasterGrid();
+    buildBatSubPlayerGrid();
     renderStats();
     saveGameToStorage();
   } else if(logId==='runLog' && runLogs.length>0){
