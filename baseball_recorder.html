@@ -1277,7 +1277,19 @@ function makeBatBtn(label, num){
   var isNoNum = String(num).startsWith('-');
   var displayNum = isNoNum ? '背番なし' : '#'+num;
   var displayLabel = isNoNum ? '#' : label;
-  btn.innerHTML = '<div class="pn">'+displayLabel+'</div><div class="pnum">'+displayNum+'</div>';
+  var statsHtml = '';
+  if(batData && batData[num] && batData[num].results && batData[num].results.length > 0){
+    var colored = batData[num].results.map(function(r){
+      var base = r.split(' ')[0];
+      var color = 'var(--text3)';
+      if(base==='○'||base==='2B'||base==='3B'||base==='HR') color='#4caf50';
+      else if(base==='Ks'||base==='Kl') color='#e57373';
+      else if(base==='SAC') color='#ffb74d';
+      return '<span style="color:'+color+'">'+r+'</span>';
+    });
+    statsHtml = '<div style="font-size:10px;line-height:1.5;margin-top:3px;background:rgba(255,255,255,0.05);border-radius:4px;padding:1px 4px;letter-spacing:0.5px">'+colored.join(' ')+'</div>';
+  }
+  btn.innerHTML = '<div class="pn">'+displayLabel+'</div><div class="pnum">'+displayNum+'</div>'+statsHtml;
   return btn;
 }
 
@@ -1644,7 +1656,8 @@ function updateBatPreview(){
   if(rbi>0) html+='<span class="tag tt">'+rbi+'打点</span>';
   box.innerHTML=html;
 
-  btn.disabled=!sel.batter||!sel.result;
+  var noFieldNeeded = sel.result && ['BB','HBP','Ks','Kl','SAC','B'].indexOf(sel.result)>=0;
+  btn.disabled=!sel.batter||!sel.result||(sel.result&&!noFieldNeeded&&!sel.dir&&!sel.type);
 }
 
 function updateBatStepBar(n){
@@ -1710,6 +1723,7 @@ function commitBat(){
   }
   renderLog('batLog',batLogs);
   buildRunMasterGrid();
+  buildBatMasterGrid();
   saveGameToStorage();
   resetBat();
   window.scrollTo(0, 0);
@@ -2270,6 +2284,7 @@ function undoLast(logId){
     num = num[1];
     var s = batData[num]; if(!s) return;
     s.pa = Math.max(0, s.pa-1);
+    if(s.results && s.results.length > 0) s.results.pop();
     var code = last.code.replace(/\d+打点.*/, '').replace(/\d+$/, '').trim();
     // RBIを戻す
     var rbiMatch = last.code.match(/(\d+)打点/);
@@ -2286,6 +2301,7 @@ function undoLast(logId){
       updateOutDisplay();
     }
     renderLog('batLog', batLogs);
+    buildBatMasterGrid();
     renderStats();
     saveGameToStorage();
   } else if(logId==='runLog' && runLogs.length>0){
