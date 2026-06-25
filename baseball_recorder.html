@@ -1519,7 +1519,6 @@ function buildGrid(id, players, cls, fn){
         var colored = results.map(function(r){
           var base = r.split(' ')[0];
           var color = 'var(--text3)';
-          if(base==='○'||base==='2B'||base==='3B'||base==='HR') color='#4caf50';
           if(base==='○'||base==='2B'||base==='3B'||base==='HR') color='#69f0ae';
           else if(base==='Ks'||base==='Kl') color='#ff6b6b';
           else if(base==='SAC') color='#ffd54f';
@@ -1527,6 +1526,7 @@ function buildGrid(id, players, cls, fn){
           return '<span style="color:'+color+';font-weight:700">'+r+'</span>';
         });
         statsHtml = '<div style="font-size:10px;line-height:1.5;margin-top:3px;background:rgba(255,255,255,0.07);border-radius:4px;padding:2px 5px">'+colored.join(' ')+'</div>';
+      }
       btn.innerHTML = '<div class="pn">'+(p.isSub?'控':p.order+'番')+' <span class="pos-badge">'+p.pos+'</span></div>'
         +'<div class="pnum">#'+p.num+'</div>'
         +'<div style="font-size:9px;color:var(--text3)">'+getMasterName(p.num)+'</div>'
@@ -1658,7 +1658,7 @@ function updateBatPreview(){
   if(rbi>0) html+='<span class="tag tt">'+rbi+'打点</span>';
   box.innerHTML=html;
 
-  var noFieldNeeded = sel.result && ['BB','HBP','Ks','Kl','SAC','B'].indexOf(sel.result)>=0;
+  var noFieldNeeded = sel.result && (['BB','HBP','Ks','Kl','SAC','B'].indexOf(sel.result)>=0 || (sel.result==='○' && sel.obtype));
   btn.disabled=!sel.batter||!sel.result||(sel.result&&!noFieldNeeded&&(!sel.dir||!sel.type));
 }
 
