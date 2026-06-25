@@ -1500,9 +1500,23 @@ function buildGrid(id, players, cls, fn){
         +'<div class="pname">'+getMasterName(p.num)+'</div>'
         +'<span class="pos-badge">'+p.pos+'</span>';
     } else {
+      var statsHtml = '';
+      if(batData && batData[p.num] && batData[p.num].results && batData[p.num].results.length > 0){
+        var results = batData[p.num].results;
+        var colored = results.map(function(r){
+          var base = r.split(' ')[0];
+          var color = 'var(--text3)';
+          if(base==='○'||base==='2B'||base==='3B'||base==='HR') color='#4caf50';
+          else if(base==='Ks'||base==='Kl') color='#e57373';
+          else if(base==='SAC') color='#ffb74d';
+          return '<span style="color:'+color+'">'+r+'</span>';
+        });
+        statsHtml = '<div style="font-size:8px;line-height:1.3;margin-top:2px;letter-spacing:0.5px">'+colored.join(' ')+'</div>';
+      }
       btn.innerHTML = '<div class="pn">'+(p.isSub?'控':p.order+'番')+' <span class="pos-badge">'+p.pos+'</span></div>'
         +'<div class="pnum">#'+p.num+'</div>'
-        +'<div style="font-size:9px;color:var(--text3)">'+getMasterName(p.num)+'</div>';
+        +'<div style="font-size:9px;color:var(--text3)">'+getMasterName(p.num)+'</div>'
+        +statsHtml;
     }
     btn.onclick = (function(pp,b){return function(){fn(pp,b);};})(p,btn);
     g.appendChild(btn);
