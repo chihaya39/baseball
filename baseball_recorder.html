@@ -1657,7 +1657,7 @@ function updateBatPreview(){
   box.innerHTML=html;
 
   var noFieldNeeded = sel.result && ['BB','HBP','Ks','Kl','SAC','B'].indexOf(sel.result)>=0;
-  btn.disabled=!sel.batter||!sel.result||(sel.result&&!noFieldNeeded&&!sel.dir&&!sel.type);
+  btn.disabled=!sel.batter||!sel.result||(sel.result&&!noFieldNeeded&&(!sel.dir||!sel.type));
 }
 
 function updateBatStepBar(n){
