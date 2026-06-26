@@ -1271,14 +1271,14 @@ function buildBatMasterGrid(){
   }
 }
 
-function makeBatBtn(label, num){
+function makeBatBtn(label, num, showBatStats){
   var btn = document.createElement('div');
   btn.className = 'pb';
   var isNoNum = String(num).startsWith('-');
   var displayNum = isNoNum ? '背番なし' : '#'+num;
   var displayLabel = isNoNum ? '#' : label;
   var statsHtml = '';
-  if(batData && batData[num] && batData[num].results && batData[num].results.length > 0){
+  if(showBatStats !== false && batData && batData[num] && batData[num].results && batData[num].results.length > 0){
     var colored = batData[num].results.map(function(r){
       var base = r.split(' ')[0];
       var color = 'var(--text3)';
@@ -1307,7 +1307,7 @@ function buildFldMasterGrid(){
     g.appendChild(starterLabel);
     batOrder.forEach(function(o){
       var pos = getMasterPos(o.num);
-      var btn = makeBatBtn(pos||'#'+o.num, o.num);
+      var btn = makeBatBtn(pos||'#'+o.num, o.num, false);
       btn.onclick = (function(p,b){return function(){
         pickFldPlayer({num:p.num,order:p.order,isSub:false,pos:getMasterPos(p.num)},b);
       };})(o,btn);
@@ -1322,7 +1322,7 @@ function buildFldMasterGrid(){
       var subAll = batSubPlayers.concat(fldSubPlayers);
       subAll.forEach(function(p){
         var pos2 = getMasterPos(p.num);
-        var btn = makeBatBtn(pos2||'#'+p.num, p.num);
+        var btn = makeBatBtn(pos2||'#'+p.num, p.num, false);
         btn.onclick = (function(pp,b){return function(){
           pickFldPlayer({num:pp.num,order:'代',isSub:true,pos:pp.pos},b);
         };})(p,btn);
@@ -1333,7 +1333,7 @@ function buildFldMasterGrid(){
   } else {
     // 未確定：マスタ全員
     master.filter(function(p){return p.num;}).forEach(function(p){
-      var btn = makeBatBtn(p.pos||'#'+p.num, p.num);
+      var btn = makeBatBtn(p.pos||'#'+p.num, p.num, false);
       btn.onclick = (function(pp,b){return function(){
         pickFldPlayer({num:pp.num, order:0, isSub:false, pos:pp.pos}, b);
       };})(p, btn);
