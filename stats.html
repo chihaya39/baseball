@@ -1992,7 +1992,8 @@ function renderGameFilter(){
   html += '<label for="gameSelect" style="font-size:10px;color:var(--text3);font-weight:700;letter-spacing:.08em;white-space:nowrap">試合絞込</label>';
   html += '<select id="gameSelect" onchange="selectGame(this.value)" '
        + 'style="width:min(520px,calc(100vw - 110px));max-width:520px;background:#111827;border:1px solid #2a3a5a;border-radius:10px;color:#e8b84b;font-size:12px;font-weight:700;padding:7px 12px;outline:none;cursor:pointer">';
-  html += '<option value="all"' + (selectedGame === 'all' ? ' selected' : '') + '>全試合</option>';
+  var allLabel = selectedGameType === 'official' ? '大会全試合' : selectedGameType === 'practice' ? '練習全試合' : '全試合';
+  html += '<option value="all"' + (selectedGame === 'all' ? ' selected' : '') + '>' + allLabel + '</option>';
 
   // 種別フィルターに応じてプルダウン絞り込み（常に適用）
   gamesData.forEach(function(g, i){
