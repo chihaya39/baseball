@@ -323,6 +323,7 @@ td:first-child{text-align:left;padding-left:4px}
     <div class="cb" data-v="WP" onclick="pickRun(this)">WP<br><span style="font-size:10px">暴投進塁</span></div>
     <div class="cb" data-v="PB" onclick="pickRun(this)">PB<br><span style="font-size:10px">捕逸進塁</span></div>
     <div class="cb" data-v="R" onclick="pickRun(this)">R<br><span style="font-size:10px">得点(打点なし)</span></div>
+    <div class="cb" data-v="OA" onclick="pickRun(this)" style="border:1px solid #f56565;">OA<br><span style="font-size:10px">走塁アウト</span></div>
   </div>
   <div class="preview" id="runPreview"><span style="color:var(--text3)">選手と記録を選んでください</span></div>
   <button class="btn btn-primary" id="runCommitBtn" disabled onclick="commitRun()">記録する</button>
@@ -403,7 +404,7 @@ td:first-child{text-align:left;padding-left:4px}
   <table><thead><tr><th>Order</th><th>#</th><th>Name</th><th>PA</th><th>H</th><th>RBI</th><th>K</th><th>BB</th></tr></thead><tbody id="statsBody"></tbody></table>
   <div class="divider"></div>
   <div style="font-size:12px;font-weight:600;margin-bottom:6px">走塁集計</div>
-  <table><thead><tr><th>#</th><th>Name</th><th>SB+</th><th>SB-</th><th>PO</th><th>WP</th><th>PB</th><th>R</th></tr></thead><tbody id="runStatsBody"></tbody></table>
+  <table><thead><tr><th>#</th><th>Name</th><th>SB+</th><th>SB-</th><th>PO</th><th>WP</th><th>PB</th><th>OA</th><th>R</th></tr></thead><tbody id="runStatsBody"></tbody></table>
   <div class="divider"></div>
   <div style="font-size:12px;font-weight:600;margin-bottom:6px">野手集計</div>
   <table><thead><tr><th>#</th><th>Name</th><th>O</th><th>N</th><th>Ec</th><th>Et</th><th>Ej</th></tr></thead><tbody id="fldStatsBody"></tbody></table>
@@ -984,7 +985,7 @@ function addSubPlayer(){
     lineup = lineup.filter(function(x){return x.num!==num;});
     lineup.push({order:nextKey, num:p.num, pos:p.pos, isSub:true});
     if(!batData[p.num]) batData[p.num]={results:[],rbi:0,ab:0,pa:0,h:0,k:0,bb:0,sac:0,order:nextKey,pos:p.pos};
-    if(!runData[p.num]) runData[p.num]={'SB+':0,'SB-':0,'PO':0,'WP':0,'PB':0,'R':0};
+    if(!runData[p.num]) runData[p.num]={'SB+':0,'SB-':0,'PO':0,'WP':0,'PB':0,'OA':0,'R':0};
     if(!fldData[p.num]) fldData[p.num]={O:0,N:0,Ec:0,Et:0,Ej:0};
     if(isPitcher(p)&&!pitData[p.num]) pitData[p.num]={O:0,K:0,BB:0,HBP:0,H:0,R:0};
     saveLineupToStorage();
@@ -1032,7 +1033,7 @@ function openPlayerPicker(orderKey, isSub){
     lineup.push({order:orderKeyNorm, num:p.num, pos:p.pos, isSub:isSub});
     // データストアを初期化
     if(!batData[p.num]) batData[p.num]={results:[],rbi:0,ab:0,pa:0,h:0,k:0,bb:0,sac:0,order:orderKeyNorm,pos:p.pos};
-    if(!runData[p.num]) runData[p.num]={'SB+':0,'SB-':0,'PO':0,'WP':0,'PB':0,'R':0};
+    if(!runData[p.num]) runData[p.num]={'SB+':0,'SB-':0,'PO':0,'WP':0,'PB':0,'OA':0,'R':0};
     if(!fldData[p.num]) fldData[p.num]={O:0,N:0,Ec:0,Et:0,Ej:0};
     if(isPitcher(p)&&!pitData[p.num]) pitData[p.num]={O:0,K:0,BB:0,HBP:0,H:0,R:0};
     saveLineupToStorage();
@@ -1413,7 +1414,7 @@ function addBatSubPlayer(){
         batSubPlayers.push({num:pp.num, pos:pp.pos});
         // データストア初期化
         if(!batData[pp.num]) batData[pp.num]={results:[],rbi:0,ab:0,pa:0,h:0,k:0,bb:0,sac:0,order:'代',pos:pp.pos};
-        if(!runData[pp.num]) runData[pp.num]={'SB+':0,'SB-':0,'PO':0,'WP':0,'PB':0,'R':0};
+        if(!runData[pp.num]) runData[pp.num]={'SB+':0,'SB-':0,'PO':0,'WP':0,'PB':0,'OA':0,'R':0};
         if(!fldData[pp.num]) fldData[pp.num]={O:0,N:0,Ec:0,Et:0,Ej:0};
         buildBatSubPlayerGrid();
         buildRunMasterGrid();  // 走塁にも自動反映
@@ -1764,11 +1765,11 @@ function pickRun(btn){
 }
 function commitRun(){
   var p=rsel.player,val=rsel.val; if(!p||!val) return;
-  if(!runData[p.num]) runData[p.num]={'SB+':0,'SB-':0,'PO':0,'WP':0,'PB':0,'R':0};
+  if(!runData[p.num]) runData[p.num]={'SB+':0,'SB-':0,'PO':0,'WP':0,'PB':0,'OA':0,'R':0};
   runData[p.num][val]=(runData[p.num][val]||0)+1;
-  // 盗塁失敗・牽制アウトはアウトカウント増加
+  // 盗塁失敗・牽制アウト・走塁アウトはアウトカウント増加
   // アウトになったら塁上から除外
-  if(val==='SB-' || val==='PO'){
+  if(val==='SB-' || val==='PO' || val==='OA'){
     onBase = onBase.filter(function(x){return x.num!==p.num;});
     buildRunMasterGrid();
   }
@@ -1779,7 +1780,7 @@ function commitRun(){
   }
   // 盗塁成功・WP・PBで次の塁へ（塁上は維持）
   var runLogInning = currentInning;
-  if(val==='SB-' || val==='PO'){
+  if(val==='SB-' || val==='PO' || val==='OA'){
     var isAttacking = isSenkou ? isOmote : !isOmote;
     if(isAttacking){
       batOutCount++;
@@ -1988,9 +1989,9 @@ function renderStats(){
   // 走塁集計
   var rb=document.getElementById('runStatsBody'); if(rb){ rb.innerHTML='';
     Object.keys(runData).forEach(function(num){
-      var s=runData[num]; if(!s||s['SB+']+s['SB-']+s.PO+s.WP+s.PB+(s.R||0)===0) return;
+      var s=runData[num]; if(!s||s['SB+']+s['SB-']+s.PO+s.WP+s.PB+(s.OA||0)+(s.R||0)===0) return;
       rb.innerHTML+='<tr><td>#'+num+'</td><td>'+getMasterName(num)+'</td><td>'+s['SB+']+'</td><td>'+s['SB-']+'</td>'
-        +'<td>'+s.PO+'</td><td>'+s.WP+'</td><td>'+s.PB+'</td><td>'+(s.R||0)+'</td></tr>';
+        +'<td>'+s.PO+'</td><td>'+s.WP+'</td><td>'+s.PB+'</td><td>'+(s.OA||0)+'</td><td>'+(s.R||0)+'</td></tr>';
     });
   }
 
@@ -2092,13 +2093,13 @@ function exportExcel(){
   // ── 走塁集計 ──
   var runRows=[];
   Object.keys(runData).forEach(function(num){
-    var s=runData[num]; if(!s||s['SB+']+s['SB-']+s.PO+s.WP+s.PB+(s.R||0)===0) return;
-    runRows.push([num,getMasterName(num),s['SB+'],s['SB-'],s.PO,s.WP,s.PB,(s.R||0)]);
+    var s=runData[num]; if(!s||s['SB+']+s['SB-']+s.PO+s.WP+s.PB+(s.OA||0)+(s.R||0)===0) return;
+    runRows.push([num,getMasterName(num),s['SB+'],s['SB-'],s.PO,s.WP,s.PB,(s.OA||0),(s.R||0)]);
   });
   if(runRows.length>0){
     ws.mergeCells(R,1,R,8);
     applyCell(R,1,'走塁集計',{bg:'34495e',ft:'FFFFFF',bold:true,sz:10}); R++;
-    ['#','Name','SB+','SB-','PO','WP','PB','R'].forEach(function(h,i){
+    ['#','Name','SB+','SB-','PO','WP','PB','OA','R'].forEach(function(h,i){
       applyCell(R,i+1,h,{bg:'AEB6BF',bold:true,sz:9,align:'center',border:true});
     }); R++;
     runRows.forEach(function(row){
@@ -2180,7 +2181,7 @@ function exportExcel(){
     var bat=batData[p.num]||{results:[]};
     var run=runData[p.num]; var fld=fldData[p.num]; var pit=pitData[p.num];
     var batStr=bat.results.join(',');
-    var runArr=[]; if(run)['SB+','SB-','PO','WP','PB'].forEach(function(k){for(var i=0;i<(run[k]||0);i++)runArr.push(k);});
+    var runArr=[]; if(run)['SB+','SB-','PO','WP','PB','OA'].forEach(function(k){for(var i=0;i<(run[k]||0);i++)runArr.push(k);});
     var fldArr=[]; if(fld)['O','N','Ec','Et','Ej'].forEach(function(k){for(var i=0;i<(fld[k]||0);i++)fldArr.push(k);});
     var pitO='',pitK='',pitBB='',pitH='',pitR='';
     if(pit&&(pit.O+pit.K+(pit.BB||0)+(pit.HBP||0)+pit.H+pit.R)>0){
@@ -2212,10 +2213,10 @@ function exportCSV(){
     var avg=s.ab>0?(s.h/s.ab).toFixed(3):'0.000';
     csv+=(p.isSub?'控え':p.order)+','+p.num+','+getMasterName(p.num)+',"'+s.results.join(',')+'",'+s.pa+','+s.ab+','+s.h+','+avg+','+s.rbi+','+s.k+','+s.bb+'\n';
   });
-  csv+='\n走塁記録\n背番号,選手名,SB+,SB-,PO,WP,PB\n';
+  csv+='\n走塁記録\n背番号,選手名,SB+,SB-,PO,WP,PB,OA\n';
   lineup.filter(function(p){return p.num&&runData[p.num];}).forEach(function(p){
     var s=runData[p.num];
-    csv+=p.num+','+getMasterName(p.num)+','+s['SB+']+','+s['SB-']+','+s.PO+','+s.WP+','+s.PB+'\n';
+    csv+=p.num+','+getMasterName(p.num)+','+s['SB+']+','+s['SB-']+','+s.PO+','+s.WP+','+s.PB+','+(s.OA||0)+'\n';
   });
   csv+='\n守備記録\n背番号,選手名,O,N,Ec,Et,Ej\n';
   lineup.filter(function(p){return p.num&&fldData[p.num];}).forEach(function(p){
@@ -2313,7 +2314,7 @@ function undoLast(logId){
     var rNum = rLast.label.match(/#(\d+)/); if(!rNum) return;
     var rs = runData[rNum[1]]; if(!rs) return;
     if(rs[rLast.code]!==undefined) rs[rLast.code] = Math.max(0, rs[rLast.code]-1);
-    if(rLast.code==='SB-'||rLast.code==='PO') { batOutCount=Math.max(0,batOutCount-1); updateOutDisplay(); }
+    if(rLast.code==='SB-'||rLast.code==='PO'||rLast.code==='OA') { batOutCount=Math.max(0,batOutCount-1); updateOutDisplay(); }
     renderLog('runLog', runLogs);
     renderStats();
     saveGameToStorage();
